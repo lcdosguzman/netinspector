@@ -1,0 +1,316 @@
+:root {
+  color-scheme: dark;
+  --background: #111318;
+  --panel: #191d24;
+  --panel-strong: #202633;
+  --line: #303846;
+  --text: #f2f5f8;
+  --muted: #9aa6b2;
+  --accent: #51c7a8;
+  --accent-strong: #72e0bf;
+  --warning: #f2bb5f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.shell {
+  display: grid;
+  gap: 16px;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.topbar,
+.summary,
+.workspace,
+.console {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.eyebrow,
+.topbar h1 {
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.topbar h1 {
+  margin-top: 6px;
+  font-size: 28px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.segmented,
+.primary {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.segmented.active,
+.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #071411;
+  font-weight: 700;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.summary div,
+.banner,
+.inspector,
+.console {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.summary div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.summary span,
+.panelHeader span,
+dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.banner {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  border-color: rgba(242, 187, 95, 0.55);
+  color: var(--warning);
+  padding: 12px 14px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  min-height: 480px;
+}
+
+.topology {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 480px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    var(--panel);
+  background-size: 44px 44px;
+}
+
+.gateway,
+.node {
+  display: grid;
+  gap: 6px;
+  width: 150px;
+  border: 1px solid rgba(81, 199, 168, 0.55);
+  border-radius: 8px;
+  background: var(--panel-strong);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.gateway {
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 0 10px rgba(81, 199, 168, 0.08);
+}
+
+.gateway span,
+.node span,
+.node small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.node small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orbit {
+  position: absolute;
+  inset: 48px;
+}
+
+.node {
+  position: absolute;
+}
+
+.node.selected,
+.gateway:focus-visible,
+.node:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
+}
+
+.node:nth-child(1) {
+  top: 8%;
+  left: 16%;
+}
+
+.node:nth-child(2) {
+  right: 12%;
+  top: 28%;
+}
+
+.node:nth-child(3) {
+  bottom: 12%;
+  left: 38%;
+}
+
+.inspector {
+  padding: 18px;
+}
+
+.panelHeader {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+dl {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+dd {
+  margin: 0;
+}
+
+.inspector h2 {
+  margin: 22px 0 10px;
+  font-size: 16px;
+}
+
+.inspector ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inspector li {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  background: #151920;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.emptyState {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.emptyState strong {
+  color: var(--text);
+}
+
+.console {
+  min-height: 132px;
+  padding: 14px;
+  color: var(--accent-strong);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+}
+
+.console p {
+  margin: 0 0 6px;
+}
+
+@media (max-width: 840px) {
+  .topbar,
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .summary,
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace {
+    min-height: auto;
+  }
+
+  .topology {
+    min-height: 420px;
+  }
+}

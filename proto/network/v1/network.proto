@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package network.v1;
+
+option go_package = "github.com/lcdosguzman/netinspector/internal/gen/network/v1;networkv1";
+
+service NetworkService {
+  rpc GetLocalNetwork(GetLocalNetworkRequest) returns (GetLocalNetworkResponse);
+  rpc StartScan(StartScanRequest) returns (StartScanResponse);
+  rpc StreamScan(StreamScanRequest) returns (stream ScanEvent);
+  rpc InspectDevice(InspectDeviceRequest) returns (InspectDeviceResponse);
+}
+
+message GetLocalNetworkRequest {}
+
+message GetLocalNetworkResponse {
+  string interface_name = 1;
+  string ip = 2;
+  string cidr = 3;
+  string gateway = 4;
+}
+
+message StartScanRequest {
+  ScanMode mode = 1;
+  string interface_name = 2;
+  string cidr = 3;
+}
+
+message StartScanResponse {
+  string scan_id = 1;
+  int32 target_hosts = 2;
+}
+
+message StreamScanRequest {
+  string scan_id = 1;
+}
+
+message ScanEvent {
+  ScanEventType event_type = 1;
+  Device device = 2;
+  string message = 3;
+  int64 timestamp = 4;
+}
+
+message Device {
+  string ip = 1;
+  string mac = 2;
+  string vendor = 3;
+  string hostname = 4;
+  int64 latency_ms = 5;
+  bool is_active = 6;
+  DeviceType device_type = 7;
+}
+
+message InspectDeviceRequest {
+  string scan_id = 1;
+  string ip = 2;
+  bool deep_scan = 3;
+}
+
+message InspectDeviceResponse {
+  string ip = 1;
+  repeated PortInfo open_ports = 2;
+  string estimated_os = 3;
+}
+
+message PortInfo {
+  int32 port = 1;
+  string protocol = 2;
+  string service_name = 3;
+}
+
+enum ScanMode {
+  SCAN_MODE_UNSPECIFIED = 0;
+  SCAN_MODE_DEMO = 1;
+  SCAN_MODE_REAL = 2;
+}
+
+enum ScanEventType {
+  SCAN_EVENT_TYPE_UNSPECIFIED = 0;
+  SCAN_EVENT_TYPE_SCAN_STARTED = 1;
+  SCAN_EVENT_TYPE_DEVICE_DISCOVERED = 2;
+  SCAN_EVENT_TYPE_DEVICE_UPDATED = 3;
+  SCAN_EVENT_TYPE_SCAN_FINISHED = 4;
+  SCAN_EVENT_TYPE_SCAN_FAILED = 5;
+}
+
+enum DeviceType {
+  DEVICE_TYPE_UNSPECIFIED = 0;
+  DEVICE_TYPE_ROUTER = 1;
+  DEVICE_TYPE_DESKTOP = 2;
+  DEVICE_TYPE_MOBILE = 3;
+  DEVICE_TYPE_TV = 4;
+  DEVICE_TYPE_PRINTER = 5;
+  DEVICE_TYPE_IOT = 6;
+  DEVICE_TYPE_UNKNOWN = 7;
+}
+

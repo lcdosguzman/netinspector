@@ -1,0 +1,76 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/lcdosguzman/netinspector/internal/api"
+	"github.com/lcdosguzman/netinspector/internal/demo"
+	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/netinspector/internal/scanner"
+)
+
+func main() {
+	mode := flag.String("mode", "demo", "scan mode: demo or real")
+	serve := flag.Bool("serve", false, "start the local API server")
+	addr := flag.String("addr", "127.0.0.1:8088", "API server address")
+	timeout := flag.Duration("timeout", 300*time.Millisecond, "timeout per host probe")
+	flag.Parse()
+
+	ctx := context.Background()
+	if *serve {
+		server := api.NewServer(api.Config{
+			Addr:        *addr,
+			ScanTimeout: *timeout,
+		})
+		log.Printf("netinspector API listening on http://%s", *addr)
+		if err := server.ListenAndServe(ctx); err != nil {
+			exitWithError(err)
+		}
+		return
+	}
+
+	switch *mode {
+	case "demo":
+		result := demo.NewScan()
+		printJSON(result)
+	case "real":
+		local, err := network.DetectLocalNetwork()
+		if err != nil {
+			exitWithError(err)
+		}
+
+		scan := scanner.NewTCPScanner(scanner.Config{
+			Ports:       scanner.DefaultDiscoveryPorts(),
+			Concurrency: 128,
+			Timeout:     *timeout,
+		})
+
+		result, err := scan.ScanCIDR(ctx, local)
+		if err != nil {
+			exitWithError(err)
+		}
+
+		printJSON(result)
+	default:
+		exitWithError(fmt.Errorf("unsupported mode %q: expected demo or real", *mode))
+	}
+}
+
+func printJSON(value any) {
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(value); err != nil {
+		exitWithError(err)
+	}
+}
+
+func exitWithError(err error) {
+	fmt.Fprintf(os.Stderr, "netinspector: %v\n", err)
+	os.Exit(1)
+}

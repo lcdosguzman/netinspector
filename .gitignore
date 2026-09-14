@@ -1,0 +1,21 @@
+# Go
+bin/
+dist/
+coverage.out
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Local environment
+.env
+.env.local
+.DS_Store
+
+# Local planning/specification notes
+Especificación Funcional y Técnica - NetInspector Engine & Dashboard.md
+Especificación Funcional y Técnica - NetInspector Engine & Dashboard v2.md
