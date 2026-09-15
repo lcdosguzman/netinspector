@@ -11,14 +11,19 @@ import (
 	networkv1 "github.com/lcdosguzman/netinspector/internal/gen/network/v1"
 	"github.com/lcdosguzman/netinspector/internal/network"
 	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/netinspector/internal/storage"
 )
 
 type networkService struct {
 	scanTimeoutConfig Config
+	repository        storage.ScanRepository
 }
 
-func newNetworkService(config Config) networkService {
-	return networkService{scanTimeoutConfig: config}
+func newNetworkService(config Config, repository storage.ScanRepository) networkService {
+	return networkService{
+		scanTimeoutConfig: config,
+		repository:        repository,
+	}
 }
 
 func (service networkService) GetLocalNetwork(_ context.Context, _ *connect.Request[networkv1.GetLocalNetworkRequest]) (*connect.Response[networkv1.GetLocalNetworkResponse], error) {
@@ -38,6 +43,36 @@ func (service networkService) StartScan(ctx context.Context, request *connect.Re
 	result, err := service.scan(ctx, request.Msg.Mode, request.Msg.Cidr)
 	if err != nil {
 		return nil, err
+	}
+	return connect.NewResponse(scanResultToProto(result)), nil
+}
+
+func (service networkService) ListScans(ctx context.Context, request *connect.Request[networkv1.ListScansRequest]) (*connect.Response[networkv1.ListScansResponse], error) {
+	scans, err := service.repository.ListScans(ctx, storage.ListScansFilter{
+		Query: request.Msg.Query,
+		Limit: int(request.Msg.Limit),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	response := &networkv1.ListScansResponse{
+		Scans: make([]*networkv1.ScanSummary, 0, len(scans)),
+	}
+	for _, scan := range scans {
+		response.Scans = append(response.Scans, scanSummaryToProto(scan))
+	}
+
+	return connect.NewResponse(response), nil
+}
+
+func (service networkService) GetScan(ctx context.Context, request *connect.Request[networkv1.GetScanRequest]) (*connect.Response[networkv1.ScanResult], error) {
+	result, err := service.repository.GetScan(ctx, request.Msg.Id)
+	if err != nil {
+		if err == storage.ErrScanNotFound {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(scanResultToProto(result)), nil
 }
@@ -89,6 +124,9 @@ func (service networkService) scan(ctx context.Context, mode networkv1.ScanMode,
 		if err != nil {
 			return scanner.ScanResult{}, connect.NewError(connect.CodeInternal, err)
 		}
+		if err := service.repository.SaveScan(ctx, result); err != nil {
+			return scanner.ScanResult{}, connect.NewError(connect.CodeInternal, err)
+		}
 		return result, nil
 	default:
 		return scanner.ScanResult{}, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("unsupported scan mode %s", mode.String()))
@@ -114,6 +152,17 @@ func scanResultToProto(result scanner.ScanResult) *networkv1.ScanResult {
 		EndedAt:   result.EndedAt.UnixMilli(),
 		Devices:   devices,
 		Events:    events,
+	}
+}
+
+func scanSummaryToProto(summary storage.ScanSummary) *networkv1.ScanSummary {
+	return &networkv1.ScanSummary{
+		Id:          summary.ID,
+		Mode:        scanModeToProto(summary.Mode),
+		Network:     summary.Network,
+		StartedAt:   summary.StartedAt.UnixMilli(),
+		EndedAt:     summary.EndedAt.UnixMilli(),
+		DeviceCount: int32(summary.DeviceCount),
 	}
 }
 

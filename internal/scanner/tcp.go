@@ -18,10 +18,19 @@ type Config struct {
 }
 
 type TCPScanner struct {
-	config Config
+	config      Config
+	discoverers []Discoverer
 }
 
 func NewTCPScanner(config Config) TCPScanner {
+	config = normalizeConfig(config)
+	return TCPScanner{
+		config:      config,
+		discoverers: defaultDiscoverers(config),
+	}
+}
+
+func normalizeConfig(config Config) Config {
 	if config.Concurrency <= 0 {
 		config.Concurrency = 64
 	}
@@ -32,7 +41,7 @@ func NewTCPScanner(config Config) TCPScanner {
 		config.Ports = DefaultDiscoveryPorts()
 	}
 
-	return TCPScanner{config: config}
+	return config
 }
 
 func DefaultDiscoveryPorts() []int {
@@ -58,72 +67,23 @@ func (scanner TCPScanner) ScanCIDR(ctx context.Context, local network.LocalNetwo
 		}},
 	}
 
-	jobs := make(chan string)
-	devices := make(chan Device)
-	var workers sync.WaitGroup
-
-	for range scanner.config.Concurrency {
-		workers.Add(1)
-		go func() {
-			defer workers.Done()
-			for ip := range jobs {
-				device, ok := scanner.probeHost(ctx, ip)
-				if ok {
-					devices <- device
-				}
-			}
-		}()
-	}
-
-	go func() {
-		defer close(jobs)
-		for _, ip := range ips {
-			select {
-			case <-ctx.Done():
-				return
-			case jobs <- ip:
-			}
+	for _, discoverer := range scanner.activeDiscoverers() {
+		devices, err := discoverer.Discover(ctx, local)
+		if err != nil {
+			return ScanResult{}, err
 		}
-	}()
 
-	go func() {
-		workers.Wait()
-		close(devices)
-	}()
-
-	for device := range devices {
-		result.Devices = mergeDevice(result.Devices, device)
-		result.Events = append(result.Events, ScanEvent{
-			Type:      "DEVICE_DISCOVERED",
-			Message:   fmt.Sprintf("Discovered %s", device.IP),
-			DeviceIP:  device.IP,
-			Timestamp: time.Now().UTC(),
-		})
-	}
-
-	for _, device := range arpNeighbors(local.CIDR) {
-		alreadyKnown := hasDevice(result.Devices, device.IP)
-		result.Devices = mergeDevice(result.Devices, device)
-		if !alreadyKnown {
-			result.Events = append(result.Events, ScanEvent{
-				Type:      "DEVICE_DISCOVERED",
-				Message:   fmt.Sprintf("Discovered %s from ARP cache", device.IP),
-				DeviceIP:  device.IP,
-				Timestamp: time.Now().UTC(),
-			})
-		}
-	}
-
-	for _, device := range mdnsNeighbors(ctx, local.CIDR, 2*time.Second) {
-		alreadyKnown := hasDevice(result.Devices, device.IP)
-		result.Devices = mergeDevice(result.Devices, device)
-		if !alreadyKnown {
-			result.Events = append(result.Events, ScanEvent{
-				Type:      "DEVICE_DISCOVERED",
-				Message:   fmt.Sprintf("Discovered %s from mDNS/Bonjour", device.IP),
-				DeviceIP:  device.IP,
-				Timestamp: time.Now().UTC(),
-			})
+		for _, device := range devices {
+			alreadyKnown := hasDevice(result.Devices, device.IP)
+			result.Devices = mergeDevice(result.Devices, device)
+			if shouldEmitDiscoveryEvent(discoverer.Source(), alreadyKnown) {
+				result.Events = append(result.Events, ScanEvent{
+					Type:      "DEVICE_DISCOVERED",
+					Message:   discoveryEventMessage(discoverer.Source(), device.IP),
+					DeviceIP:  device.IP,
+					Timestamp: time.Now().UTC(),
+				})
+			}
 		}
 	}
 
@@ -143,6 +103,13 @@ func (scanner TCPScanner) ScanCIDR(ctx context.Context, local network.LocalNetwo
 	})
 
 	return result, ctx.Err()
+}
+
+func (scanner TCPScanner) activeDiscoverers() []Discoverer {
+	if len(scanner.discoverers) > 0 {
+		return scanner.discoverers
+	}
+	return defaultDiscoverers(normalizeConfig(scanner.config))
 }
 
 func mergeDevice(devices []Device, next Device) []Device {
@@ -225,17 +192,76 @@ func compareIPv4(left string, right string) int {
 	return 0
 }
 
-func (scanner TCPScanner) probeHost(ctx context.Context, ip string) (Device, bool) {
+type TCPDiscoverer struct {
+	config Config
+}
+
+func NewTCPDiscoverer(config Config) TCPDiscoverer {
+	return TCPDiscoverer{config: normalizeConfig(config)}
+}
+
+func (discoverer TCPDiscoverer) Source() DiscoverySource {
+	return DiscoverySourceTCP
+}
+
+func (discoverer TCPDiscoverer) Discover(ctx context.Context, local network.LocalNetwork) ([]Device, error) {
+	ips, err := hosts(local.CIDR)
+	if err != nil {
+		return nil, err
+	}
+
+	jobs := make(chan string)
+	results := make(chan Device)
+	var workers sync.WaitGroup
+
+	for range discoverer.config.Concurrency {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for ip := range jobs {
+				device, ok := discoverer.probeHost(ctx, ip)
+				if ok {
+					results <- device
+				}
+			}
+		}()
+	}
+
+	go func() {
+		defer close(jobs)
+		for _, ip := range ips {
+			select {
+			case <-ctx.Done():
+				return
+			case jobs <- ip:
+			}
+		}
+	}()
+
+	go func() {
+		workers.Wait()
+		close(results)
+	}()
+
+	devices := make([]Device, 0)
+	for device := range results {
+		devices = append(devices, device)
+	}
+
+	return devices, nil
+}
+
+func (discoverer TCPDiscoverer) probeHost(ctx context.Context, ip string) (Device, bool) {
 	startedAt := time.Now()
 	openPorts := make([]Port, 0)
 
-	for _, port := range scanner.config.Ports {
+	for _, port := range discoverer.config.Ports {
 		if ctx.Err() != nil {
 			return Device{}, false
 		}
 
 		address := fmt.Sprintf("%s:%d", ip, port)
-		dialer := net.Dialer{Timeout: scanner.config.Timeout}
+		dialer := net.Dialer{Timeout: discoverer.config.Timeout}
 		conn, err := dialer.DialContext(ctx, "tcp", address)
 		if err != nil {
 			continue

@@ -1,12 +1,25 @@
 package scanner
 
 import (
+	"context"
 	"net"
 	"os/exec"
 	"regexp"
+
+	"github.com/lcdosguzman/netinspector/internal/network"
 )
 
 var arpLinePattern = regexp.MustCompile(`\((\d+\.\d+\.\d+\.\d+)\) at ([0-9a-fA-F:]+)`)
+
+type ARPDiscoverer struct{}
+
+func (discoverer ARPDiscoverer) Source() DiscoverySource {
+	return DiscoverySourceARP
+}
+
+func (discoverer ARPDiscoverer) Discover(_ context.Context, local network.LocalNetwork) ([]Device, error) {
+	return arpNeighbors(local.CIDR), nil
+}
 
 func arpNeighbors(cidr string) []Device {
 	output, err := exec.Command("arp", "-an").Output()

@@ -19,14 +19,16 @@ func main() {
 	mode := flag.String("mode", "demo", "scan mode: demo or real")
 	serve := flag.Bool("serve", false, "start the local API server")
 	addr := flag.String("addr", "127.0.0.1:8088", "API server address")
+	dbPath := flag.String("db", "", "SQLite database path for scan history")
 	timeout := flag.Duration("timeout", 300*time.Millisecond, "timeout per host probe")
 	flag.Parse()
 
 	ctx := context.Background()
 	if *serve {
 		server := api.NewServer(api.Config{
-			Addr:        *addr,
-			ScanTimeout: *timeout,
+			Addr:         *addr,
+			ScanTimeout:  *timeout,
+			DatabasePath: *dbPath,
 		})
 		log.Printf("netinspector API listening on http://%s", *addr)
 		if err := server.ListenAndServe(ctx); err != nil {

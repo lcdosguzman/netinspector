@@ -14,6 +14,7 @@ yarn-debug.log*
 # Local environment
 .env
 .env.local
+.netinspector/
 .DS_Store
 
 # Local planning/specification notes

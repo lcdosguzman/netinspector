@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetLocalNetworkRequest, GetLocalNetworkResponse, InspectDeviceRequest, InspectDeviceResponse, ScanEvent, ScanResult, StartScanRequest, StreamScanRequest } from "./network_pb";
+import { GetLocalNetworkRequest, GetLocalNetworkResponse, GetScanRequest, InspectDeviceRequest, InspectDeviceResponse, ListScansRequest, ListScansResponse, ScanEvent, ScanResult, StartScanRequest, StreamScanRequest } from "./network_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -27,6 +27,24 @@ export const NetworkService = {
     startScan: {
       name: "StartScan",
       I: StartScanRequest,
+      O: ScanResult,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc network.v1.NetworkService.ListScans
+     */
+    listScans: {
+      name: "ListScans",
+      I: ListScansRequest,
+      O: ListScansResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc network.v1.NetworkService.GetScan
+     */
+    getScan: {
+      name: "GetScan",
+      I: GetScanRequest,
       O: ScanResult,
       kind: MethodKind.Unary,
     },

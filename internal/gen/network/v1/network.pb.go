@@ -448,6 +448,230 @@ func (x *ScanResult) GetEvents() []*ScanEvent {
 	return nil
 }
 
+type ListScansRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListScansRequest) Reset() {
+	*x = ListScansRequest{}
+	mi := &file_network_v1_network_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListScansRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListScansRequest) ProtoMessage() {}
+
+func (x *ListScansRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_network_v1_network_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListScansRequest.ProtoReflect.Descriptor instead.
+func (*ListScansRequest) Descriptor() ([]byte, []int) {
+	return file_network_v1_network_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ListScansRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *ListScansRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListScansResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scans         []*ScanSummary         `protobuf:"bytes,1,rep,name=scans,proto3" json:"scans,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListScansResponse) Reset() {
+	*x = ListScansResponse{}
+	mi := &file_network_v1_network_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListScansResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListScansResponse) ProtoMessage() {}
+
+func (x *ListScansResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_network_v1_network_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListScansResponse.ProtoReflect.Descriptor instead.
+func (*ListScansResponse) Descriptor() ([]byte, []int) {
+	return file_network_v1_network_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListScansResponse) GetScans() []*ScanSummary {
+	if x != nil {
+		return x.Scans
+	}
+	return nil
+}
+
+type GetScanRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetScanRequest) Reset() {
+	*x = GetScanRequest{}
+	mi := &file_network_v1_network_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetScanRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetScanRequest) ProtoMessage() {}
+
+func (x *GetScanRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_network_v1_network_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetScanRequest.ProtoReflect.Descriptor instead.
+func (*GetScanRequest) Descriptor() ([]byte, []int) {
+	return file_network_v1_network_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetScanRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ScanSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mode          ScanMode               `protobuf:"varint,2,opt,name=mode,proto3,enum=network.v1.ScanMode" json:"mode,omitempty"`
+	Network       string                 `protobuf:"bytes,3,opt,name=network,proto3" json:"network,omitempty"`
+	StartedAt     int64                  `protobuf:"varint,4,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	EndedAt       int64                  `protobuf:"varint,5,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
+	DeviceCount   int32                  `protobuf:"varint,6,opt,name=device_count,json=deviceCount,proto3" json:"device_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScanSummary) Reset() {
+	*x = ScanSummary{}
+	mi := &file_network_v1_network_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScanSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScanSummary) ProtoMessage() {}
+
+func (x *ScanSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_network_v1_network_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScanSummary.ProtoReflect.Descriptor instead.
+func (*ScanSummary) Descriptor() ([]byte, []int) {
+	return file_network_v1_network_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ScanSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ScanSummary) GetMode() ScanMode {
+	if x != nil {
+		return x.Mode
+	}
+	return ScanMode_SCAN_MODE_UNSPECIFIED
+}
+
+func (x *ScanSummary) GetNetwork() string {
+	if x != nil {
+		return x.Network
+	}
+	return ""
+}
+
+func (x *ScanSummary) GetStartedAt() int64 {
+	if x != nil {
+		return x.StartedAt
+	}
+	return 0
+}
+
+func (x *ScanSummary) GetEndedAt() int64 {
+	if x != nil {
+		return x.EndedAt
+	}
+	return 0
+}
+
+func (x *ScanSummary) GetDeviceCount() int32 {
+	if x != nil {
+		return x.DeviceCount
+	}
+	return 0
+}
+
 type StreamScanRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ScanId        string                 `protobuf:"bytes,1,opt,name=scan_id,json=scanId,proto3" json:"scan_id,omitempty"`
@@ -457,7 +681,7 @@ type StreamScanRequest struct {
 
 func (x *StreamScanRequest) Reset() {
 	*x = StreamScanRequest{}
-	mi := &file_network_v1_network_proto_msgTypes[4]
+	mi := &file_network_v1_network_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -469,7 +693,7 @@ func (x *StreamScanRequest) String() string {
 func (*StreamScanRequest) ProtoMessage() {}
 
 func (x *StreamScanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_network_v1_network_proto_msgTypes[4]
+	mi := &file_network_v1_network_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -482,7 +706,7 @@ func (x *StreamScanRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamScanRequest.ProtoReflect.Descriptor instead.
 func (*StreamScanRequest) Descriptor() ([]byte, []int) {
-	return file_network_v1_network_proto_rawDescGZIP(), []int{4}
+	return file_network_v1_network_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StreamScanRequest) GetScanId() string {
@@ -504,7 +728,7 @@ type ScanEvent struct {
 
 func (x *ScanEvent) Reset() {
 	*x = ScanEvent{}
-	mi := &file_network_v1_network_proto_msgTypes[5]
+	mi := &file_network_v1_network_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -516,7 +740,7 @@ func (x *ScanEvent) String() string {
 func (*ScanEvent) ProtoMessage() {}
 
 func (x *ScanEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_network_v1_network_proto_msgTypes[5]
+	mi := &file_network_v1_network_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -529,7 +753,7 @@ func (x *ScanEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScanEvent.ProtoReflect.Descriptor instead.
 func (*ScanEvent) Descriptor() ([]byte, []int) {
-	return file_network_v1_network_proto_rawDescGZIP(), []int{5}
+	return file_network_v1_network_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ScanEvent) GetEventType() ScanEventType {
@@ -577,7 +801,7 @@ type Device struct {
 
 func (x *Device) Reset() {
 	*x = Device{}
-	mi := &file_network_v1_network_proto_msgTypes[6]
+	mi := &file_network_v1_network_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +813,7 @@ func (x *Device) String() string {
 func (*Device) ProtoMessage() {}
 
 func (x *Device) ProtoReflect() protoreflect.Message {
-	mi := &file_network_v1_network_proto_msgTypes[6]
+	mi := &file_network_v1_network_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +826,7 @@ func (x *Device) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Device.ProtoReflect.Descriptor instead.
 func (*Device) Descriptor() ([]byte, []int) {
-	return file_network_v1_network_proto_rawDescGZIP(), []int{6}
+	return file_network_v1_network_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Device) GetIp() string {
@@ -679,7 +903,7 @@ type InspectDeviceRequest struct {
 
 func (x *InspectDeviceRequest) Reset() {
 	*x = InspectDeviceRequest{}
-	mi := &file_network_v1_network_proto_msgTypes[7]
+	mi := &file_network_v1_network_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -691,7 +915,7 @@ func (x *InspectDeviceRequest) String() string {
 func (*InspectDeviceRequest) ProtoMessage() {}
 
 func (x *InspectDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_network_v1_network_proto_msgTypes[7]
+	mi := &file_network_v1_network_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -704,7 +928,7 @@ func (x *InspectDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InspectDeviceRequest.ProtoReflect.Descriptor instead.
 func (*InspectDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_network_v1_network_proto_rawDescGZIP(), []int{7}
+	return file_network_v1_network_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *InspectDeviceRequest) GetScanId() string {
@@ -739,7 +963,7 @@ type InspectDeviceResponse struct {
 
 func (x *InspectDeviceResponse) Reset() {
 	*x = InspectDeviceResponse{}
-	mi := &file_network_v1_network_proto_msgTypes[8]
+	mi := &file_network_v1_network_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -751,7 +975,7 @@ func (x *InspectDeviceResponse) String() string {
 func (*InspectDeviceResponse) ProtoMessage() {}
 
 func (x *InspectDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_network_v1_network_proto_msgTypes[8]
+	mi := &file_network_v1_network_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -764,7 +988,7 @@ func (x *InspectDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InspectDeviceResponse.ProtoReflect.Descriptor instead.
 func (*InspectDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_network_v1_network_proto_rawDescGZIP(), []int{8}
+	return file_network_v1_network_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *InspectDeviceResponse) GetIp() string {
@@ -799,7 +1023,7 @@ type PortInfo struct {
 
 func (x *PortInfo) Reset() {
 	*x = PortInfo{}
-	mi := &file_network_v1_network_proto_msgTypes[9]
+	mi := &file_network_v1_network_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -811,7 +1035,7 @@ func (x *PortInfo) String() string {
 func (*PortInfo) ProtoMessage() {}
 
 func (x *PortInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_network_v1_network_proto_msgTypes[9]
+	mi := &file_network_v1_network_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -824,7 +1048,7 @@ func (x *PortInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortInfo.ProtoReflect.Descriptor instead.
 func (*PortInfo) Descriptor() ([]byte, []int) {
-	return file_network_v1_network_proto_rawDescGZIP(), []int{9}
+	return file_network_v1_network_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PortInfo) GetPort() int32 {
@@ -873,7 +1097,22 @@ const file_network_v1_network_proto_rawDesc = "" +
 	"started_at\x18\x04 \x01(\x03R\tstartedAt\x12\x19\n" +
 	"\bended_at\x18\x05 \x01(\x03R\aendedAt\x12,\n" +
 	"\adevices\x18\x06 \x03(\v2\x12.network.v1.DeviceR\adevices\x12-\n" +
-	"\x06events\x18\a \x03(\v2\x15.network.v1.ScanEventR\x06events\",\n" +
+	"\x06events\x18\a \x03(\v2\x15.network.v1.ScanEventR\x06events\">\n" +
+	"\x10ListScansRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"B\n" +
+	"\x11ListScansResponse\x12-\n" +
+	"\x05scans\x18\x01 \x03(\v2\x17.network.v1.ScanSummaryR\x05scans\" \n" +
+	"\x0eGetScanRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xbe\x01\n" +
+	"\vScanSummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
+	"\x04mode\x18\x02 \x01(\x0e2\x14.network.v1.ScanModeR\x04mode\x12\x18\n" +
+	"\anetwork\x18\x03 \x01(\tR\anetwork\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x04 \x01(\x03R\tstartedAt\x12\x19\n" +
+	"\bended_at\x18\x05 \x01(\x03R\aendedAt\x12!\n" +
+	"\fdevice_count\x18\x06 \x01(\x05R\vdeviceCount\",\n" +
 	"\x11StreamScanRequest\x12\x17\n" +
 	"\ascan_id\x18\x01 \x01(\tR\x06scanId\"\xa9\x01\n" +
 	"\tScanEvent\x128\n" +
@@ -927,10 +1166,12 @@ const file_network_v1_network_proto_rawDesc = "" +
 	"\x0eDEVICE_TYPE_TV\x10\x04\x12\x17\n" +
 	"\x13DEVICE_TYPE_PRINTER\x10\x05\x12\x13\n" +
 	"\x0fDEVICE_TYPE_IOT\x10\x06\x12\x17\n" +
-	"\x13DEVICE_TYPE_UNKNOWN\x10\a2\xcb\x02\n" +
+	"\x13DEVICE_TYPE_UNKNOWN\x10\a2\xd4\x03\n" +
 	"\x0eNetworkService\x12Z\n" +
 	"\x0fGetLocalNetwork\x12\".network.v1.GetLocalNetworkRequest\x1a#.network.v1.GetLocalNetworkResponse\x12A\n" +
-	"\tStartScan\x12\x1c.network.v1.StartScanRequest\x1a\x16.network.v1.ScanResult\x12D\n" +
+	"\tStartScan\x12\x1c.network.v1.StartScanRequest\x1a\x16.network.v1.ScanResult\x12H\n" +
+	"\tListScans\x12\x1c.network.v1.ListScansRequest\x1a\x1d.network.v1.ListScansResponse\x12=\n" +
+	"\aGetScan\x12\x1a.network.v1.GetScanRequest\x1a\x16.network.v1.ScanResult\x12D\n" +
 	"\n" +
 	"StreamScan\x12\x1d.network.v1.StreamScanRequest\x1a\x15.network.v1.ScanEvent0\x01\x12T\n" +
 	"\rInspectDevice\x12 .network.v1.InspectDeviceRequest\x1a!.network.v1.InspectDeviceResponseBGZEgithub.com/lcdosguzman/netinspector/internal/gen/network/v1;networkv1b\x06proto3"
@@ -948,7 +1189,7 @@ func file_network_v1_network_proto_rawDescGZIP() []byte {
 }
 
 var file_network_v1_network_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_network_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_network_v1_network_proto_goTypes = []any{
 	(ScanMode)(0),                   // 0: network.v1.ScanMode
 	(ScanEventType)(0),              // 1: network.v1.ScanEventType
@@ -957,36 +1198,46 @@ var file_network_v1_network_proto_goTypes = []any{
 	(*GetLocalNetworkResponse)(nil), // 4: network.v1.GetLocalNetworkResponse
 	(*StartScanRequest)(nil),        // 5: network.v1.StartScanRequest
 	(*ScanResult)(nil),              // 6: network.v1.ScanResult
-	(*StreamScanRequest)(nil),       // 7: network.v1.StreamScanRequest
-	(*ScanEvent)(nil),               // 8: network.v1.ScanEvent
-	(*Device)(nil),                  // 9: network.v1.Device
-	(*InspectDeviceRequest)(nil),    // 10: network.v1.InspectDeviceRequest
-	(*InspectDeviceResponse)(nil),   // 11: network.v1.InspectDeviceResponse
-	(*PortInfo)(nil),                // 12: network.v1.PortInfo
+	(*ListScansRequest)(nil),        // 7: network.v1.ListScansRequest
+	(*ListScansResponse)(nil),       // 8: network.v1.ListScansResponse
+	(*GetScanRequest)(nil),          // 9: network.v1.GetScanRequest
+	(*ScanSummary)(nil),             // 10: network.v1.ScanSummary
+	(*StreamScanRequest)(nil),       // 11: network.v1.StreamScanRequest
+	(*ScanEvent)(nil),               // 12: network.v1.ScanEvent
+	(*Device)(nil),                  // 13: network.v1.Device
+	(*InspectDeviceRequest)(nil),    // 14: network.v1.InspectDeviceRequest
+	(*InspectDeviceResponse)(nil),   // 15: network.v1.InspectDeviceResponse
+	(*PortInfo)(nil),                // 16: network.v1.PortInfo
 }
 var file_network_v1_network_proto_depIdxs = []int32{
 	0,  // 0: network.v1.StartScanRequest.mode:type_name -> network.v1.ScanMode
 	0,  // 1: network.v1.ScanResult.mode:type_name -> network.v1.ScanMode
-	9,  // 2: network.v1.ScanResult.devices:type_name -> network.v1.Device
-	8,  // 3: network.v1.ScanResult.events:type_name -> network.v1.ScanEvent
-	1,  // 4: network.v1.ScanEvent.event_type:type_name -> network.v1.ScanEventType
-	9,  // 5: network.v1.ScanEvent.device:type_name -> network.v1.Device
-	2,  // 6: network.v1.Device.device_type:type_name -> network.v1.DeviceType
-	12, // 7: network.v1.Device.ports:type_name -> network.v1.PortInfo
-	12, // 8: network.v1.InspectDeviceResponse.open_ports:type_name -> network.v1.PortInfo
-	3,  // 9: network.v1.NetworkService.GetLocalNetwork:input_type -> network.v1.GetLocalNetworkRequest
-	5,  // 10: network.v1.NetworkService.StartScan:input_type -> network.v1.StartScanRequest
-	7,  // 11: network.v1.NetworkService.StreamScan:input_type -> network.v1.StreamScanRequest
-	10, // 12: network.v1.NetworkService.InspectDevice:input_type -> network.v1.InspectDeviceRequest
-	4,  // 13: network.v1.NetworkService.GetLocalNetwork:output_type -> network.v1.GetLocalNetworkResponse
-	6,  // 14: network.v1.NetworkService.StartScan:output_type -> network.v1.ScanResult
-	8,  // 15: network.v1.NetworkService.StreamScan:output_type -> network.v1.ScanEvent
-	11, // 16: network.v1.NetworkService.InspectDevice:output_type -> network.v1.InspectDeviceResponse
-	13, // [13:17] is the sub-list for method output_type
-	9,  // [9:13] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	13, // 2: network.v1.ScanResult.devices:type_name -> network.v1.Device
+	12, // 3: network.v1.ScanResult.events:type_name -> network.v1.ScanEvent
+	10, // 4: network.v1.ListScansResponse.scans:type_name -> network.v1.ScanSummary
+	0,  // 5: network.v1.ScanSummary.mode:type_name -> network.v1.ScanMode
+	1,  // 6: network.v1.ScanEvent.event_type:type_name -> network.v1.ScanEventType
+	13, // 7: network.v1.ScanEvent.device:type_name -> network.v1.Device
+	2,  // 8: network.v1.Device.device_type:type_name -> network.v1.DeviceType
+	16, // 9: network.v1.Device.ports:type_name -> network.v1.PortInfo
+	16, // 10: network.v1.InspectDeviceResponse.open_ports:type_name -> network.v1.PortInfo
+	3,  // 11: network.v1.NetworkService.GetLocalNetwork:input_type -> network.v1.GetLocalNetworkRequest
+	5,  // 12: network.v1.NetworkService.StartScan:input_type -> network.v1.StartScanRequest
+	7,  // 13: network.v1.NetworkService.ListScans:input_type -> network.v1.ListScansRequest
+	9,  // 14: network.v1.NetworkService.GetScan:input_type -> network.v1.GetScanRequest
+	11, // 15: network.v1.NetworkService.StreamScan:input_type -> network.v1.StreamScanRequest
+	14, // 16: network.v1.NetworkService.InspectDevice:input_type -> network.v1.InspectDeviceRequest
+	4,  // 17: network.v1.NetworkService.GetLocalNetwork:output_type -> network.v1.GetLocalNetworkResponse
+	6,  // 18: network.v1.NetworkService.StartScan:output_type -> network.v1.ScanResult
+	8,  // 19: network.v1.NetworkService.ListScans:output_type -> network.v1.ListScansResponse
+	6,  // 20: network.v1.NetworkService.GetScan:output_type -> network.v1.ScanResult
+	12, // 21: network.v1.NetworkService.StreamScan:output_type -> network.v1.ScanEvent
+	15, // 22: network.v1.NetworkService.InspectDevice:output_type -> network.v1.InspectDeviceResponse
+	17, // [17:23] is the sub-list for method output_type
+	11, // [11:17] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_network_v1_network_proto_init() }
@@ -1000,7 +1251,7 @@ func file_network_v1_network_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_network_v1_network_proto_rawDesc), len(file_network_v1_network_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   10,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

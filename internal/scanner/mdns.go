@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grandcat/zeroconf"
+	"github.com/lcdosguzman/netinspector/internal/network"
 )
 
 var mdnsServiceTypes = []string{
@@ -22,6 +23,18 @@ var mdnsServiceTypes = []string{
 	"_printer._tcp",
 	"_smb._tcp",
 	"_ssh._tcp",
+}
+
+type MDNSDiscoverer struct {
+	Timeout time.Duration
+}
+
+func (discoverer MDNSDiscoverer) Source() DiscoverySource {
+	return DiscoverySourceMDNS
+}
+
+func (discoverer MDNSDiscoverer) Discover(ctx context.Context, local network.LocalNetwork) ([]Device, error) {
+	return mdnsNeighbors(ctx, local.CIDR, discoverer.Timeout), nil
 }
 
 func mdnsNeighbors(ctx context.Context, cidr string, timeout time.Duration) []Device {

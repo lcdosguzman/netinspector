@@ -341,6 +341,190 @@ export class ScanResult extends Message<ScanResult> {
 }
 
 /**
+ * @generated from message network.v1.ListScansRequest
+ */
+export class ListScansRequest extends Message<ListScansRequest> {
+  /**
+   * @generated from field: string query = 1;
+   */
+  query = "";
+
+  /**
+   * @generated from field: int32 limit = 2;
+   */
+  limit = 0;
+
+  constructor(data?: PartialMessage<ListScansRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "network.v1.ListScansRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "query", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListScansRequest {
+    return new ListScansRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListScansRequest {
+    return new ListScansRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListScansRequest {
+    return new ListScansRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListScansRequest | PlainMessage<ListScansRequest> | undefined, b: ListScansRequest | PlainMessage<ListScansRequest> | undefined): boolean {
+    return proto3.util.equals(ListScansRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message network.v1.ListScansResponse
+ */
+export class ListScansResponse extends Message<ListScansResponse> {
+  /**
+   * @generated from field: repeated network.v1.ScanSummary scans = 1;
+   */
+  scans: ScanSummary[] = [];
+
+  constructor(data?: PartialMessage<ListScansResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "network.v1.ListScansResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "scans", kind: "message", T: ScanSummary, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListScansResponse {
+    return new ListScansResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListScansResponse {
+    return new ListScansResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListScansResponse {
+    return new ListScansResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListScansResponse | PlainMessage<ListScansResponse> | undefined, b: ListScansResponse | PlainMessage<ListScansResponse> | undefined): boolean {
+    return proto3.util.equals(ListScansResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message network.v1.GetScanRequest
+ */
+export class GetScanRequest extends Message<GetScanRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<GetScanRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "network.v1.GetScanRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetScanRequest {
+    return new GetScanRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetScanRequest {
+    return new GetScanRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetScanRequest {
+    return new GetScanRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetScanRequest | PlainMessage<GetScanRequest> | undefined, b: GetScanRequest | PlainMessage<GetScanRequest> | undefined): boolean {
+    return proto3.util.equals(GetScanRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message network.v1.ScanSummary
+ */
+export class ScanSummary extends Message<ScanSummary> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: network.v1.ScanMode mode = 2;
+   */
+  mode = ScanMode.UNSPECIFIED;
+
+  /**
+   * @generated from field: string network = 3;
+   */
+  network = "";
+
+  /**
+   * @generated from field: int64 started_at = 4;
+   */
+  startedAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 ended_at = 5;
+   */
+  endedAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int32 device_count = 6;
+   */
+  deviceCount = 0;
+
+  constructor(data?: PartialMessage<ScanSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "network.v1.ScanSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "mode", kind: "enum", T: proto3.getEnumType(ScanMode) },
+    { no: 3, name: "network", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "started_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 5, name: "ended_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 6, name: "device_count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ScanSummary {
+    return new ScanSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ScanSummary {
+    return new ScanSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ScanSummary {
+    return new ScanSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ScanSummary | PlainMessage<ScanSummary> | undefined, b: ScanSummary | PlainMessage<ScanSummary> | undefined): boolean {
+    return proto3.util.equals(ScanSummary, a, b);
+  }
+}
+
+/**
  * @generated from message network.v1.StreamScanRequest
  */
 export class StreamScanRequest extends Message<StreamScanRequest> {

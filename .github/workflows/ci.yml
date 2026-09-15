@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Test and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/dashboard/package-lock.json
+
+      - name: Install root Node dependencies
+        run: npm ci
+
+      - name: Install dashboard Node dependencies
+        run: npm ci
+        working-directory: apps/dashboard
+
+      - name: Install Protobuf generators
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Verify generated Protobuf code
+        run: |
+          npm run proto:generate
+          git diff --exit-code -- proto internal/gen apps/dashboard/src/gen
+
+      - name: Run Go tests
+        run: go test ./...
+
+      - name: Lint dashboard
+        run: npm run lint
+        working-directory: apps/dashboard
+
+      - name: Build dashboard
+        run: npm run build
+        working-directory: apps/dashboard

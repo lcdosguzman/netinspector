@@ -3,6 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "dev": "make dev",
+    "dev:api": "make dev-api",
+    "dev:dashboard": "make dev-dashboard",
+    "test": "make test",
+    "lint": "make lint",
+    "build": "make build",
+    "check": "make check",
+    "proto": "make proto",
+    "proto:check": "make proto-check",
     "proto:generate": "buf generate"
   },
   "devDependencies": {

@@ -47,6 +47,7 @@ button:disabled {
 .topbar,
 .summary,
 .workspace,
+.history,
 .console {
   width: min(1280px, 100%);
   margin: 0 auto;
@@ -82,7 +83,8 @@ button:disabled {
 }
 
 .segmented,
-.primary {
+.primary,
+.secondary {
   min-height: 38px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -99,6 +101,10 @@ button:disabled {
   font-weight: 700;
 }
 
+.secondary {
+  background: var(--panel-strong);
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -107,6 +113,7 @@ button:disabled {
 
 .summary div,
 .banner,
+.history,
 .inspector,
 .console {
   border: 1px solid var(--line);
@@ -310,6 +317,108 @@ dd {
 
 .emptyState strong {
   color: var(--text);
+}
+
+.history {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.historyHeader div {
+  display: grid;
+  gap: 4px;
+}
+
+.historyHeader span,
+.historyItem span,
+.historyItem small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.historySearch {
+  min-height: 38px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #151920;
+  color: var(--text);
+  font: inherit;
+  padding: 0 12px;
+}
+
+.historyList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.historyItem {
+  display: grid;
+  gap: 10px;
+  min-height: 108px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #151920;
+  padding: 10px;
+  text-align: left;
+}
+
+.historyOpen {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyItem.active,
+.historyItem:focus-within {
+  border-color: var(--accent-strong);
+  outline: none;
+}
+
+.historyItem strong,
+.historyItem small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyExports {
+  display: flex;
+  gap: 8px;
+}
+
+.historyExports a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-strong);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 10px;
+  text-decoration: none;
+}
+
+.historyExports a:focus-visible,
+.historyExports a:hover {
+  border-color: var(--accent);
+  outline: none;
 }
 
 .console {

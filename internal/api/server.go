@@ -6,21 +6,28 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/lcdosguzman/netinspector/internal/demo"
 	networkv1connect "github.com/lcdosguzman/netinspector/internal/gen/network/v1/networkv1connect"
 	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/netinspector/internal/report"
 	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/netinspector/internal/storage"
 )
 
 type Config struct {
-	Addr        string
-	ScanTimeout time.Duration
+	Addr         string
+	ScanTimeout  time.Duration
+	DatabasePath string
 }
 
 type Server struct {
-	config Config
+	config     Config
+	repository storage.ScanRepository
 }
 
 func NewServer(config Config) Server {
@@ -30,16 +37,30 @@ func NewServer(config Config) Server {
 	if config.ScanTimeout <= 0 {
 		config.ScanTimeout = 300 * time.Millisecond
 	}
+	if config.DatabasePath == "" {
+		config.DatabasePath = os.Getenv("NETINSPECTOR_DB_PATH")
+	}
 
 	return Server{config: config}
 }
 
 func (server Server) ListenAndServe(ctx context.Context) error {
+	repository, err := storage.NewSQLiteScanRepository(server.config.DatabasePath)
+	if err != nil {
+		return err
+	}
+	defer repository.Close()
+
+	server.repository = repository
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", server.handleHealth)
 	mux.HandleFunc("GET /api/local-network", server.handleLocalNetwork)
+	mux.HandleFunc("GET /api/scans", server.handleListScans)
+	mux.HandleFunc("GET /api/scans/{id}/export/{format}", server.handleExportScan)
+	mux.HandleFunc("GET /api/scans/{id}", server.handleGetScan)
 	mux.HandleFunc("POST /api/scans", server.handleStartScan)
-	path, handler := networkv1connect.NewNetworkServiceHandler(newNetworkService(server.config))
+	path, handler := networkv1connect.NewNetworkServiceHandler(newNetworkService(server.config, repository))
 	mux.Handle(path, handler)
 
 	httpServer := &http.Server{
@@ -111,9 +132,80 @@ func (server Server) handleStartScan(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, err)
 			return
 		}
+		if err := server.repository.SaveScan(r.Context(), result); err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
 		writeJSON(w, http.StatusOK, result)
 	default:
 		writeError(w, http.StatusBadRequest, fmt.Errorf("unsupported scan mode %q", request.Mode))
+	}
+}
+
+func (server Server) handleListScans(w http.ResponseWriter, r *http.Request) {
+	limit := 0
+	if rawLimit := r.URL.Query().Get("limit"); rawLimit != "" {
+		parsedLimit, err := strconv.Atoi(rawLimit)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, fmt.Errorf("invalid limit %q", rawLimit))
+			return
+		}
+		limit = parsedLimit
+	}
+
+	scans, err := server.repository.ListScans(r.Context(), storage.ListScansFilter{
+		Query: r.URL.Query().Get("query"),
+		Limit: limit,
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, scans)
+}
+
+func (server Server) handleGetScan(w http.ResponseWriter, r *http.Request) {
+	result, err := server.repository.GetScan(r.Context(), r.PathValue("id"))
+	if err != nil {
+		if errors.Is(err, storage.ErrScanNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (server Server) handleExportScan(w http.ResponseWriter, r *http.Request) {
+	result, err := server.repository.GetScan(r.Context(), r.PathValue("id"))
+	if err != nil {
+		if errors.Is(err, storage.ErrScanNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	format := strings.ToLower(r.PathValue("format"))
+	switch format {
+	case "json":
+		payload, err := report.JSON(result)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
+		writeDownload(w, http.StatusOK, "application/json", exportFilename(result, "json"), payload)
+	case "csv":
+		payload, err := report.CSV(result)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
+		writeDownload(w, http.StatusOK, "text/csv", exportFilename(result, "csv"), payload)
+	default:
+		writeError(w, http.StatusBadRequest, fmt.Errorf("unsupported export format %q", format))
 	}
 }
 
@@ -132,6 +224,21 @@ func writeError(w http.ResponseWriter, status int, err error) {
 	writeJSON(w, status, map[string]string{"error": err.Error()})
 }
 
+func writeDownload(w http.ResponseWriter, status int, contentType string, filename string, payload []byte) {
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
+	w.WriteHeader(status)
+	_, _ = w.Write(payload)
+}
+
+func exportFilename(scan scanner.ScanResult, extension string) string {
+	scanID := strings.NewReplacer("/", "-", "\\", "-", " ", "-").Replace(scan.ID)
+	if scanID == "" {
+		scanID = "scan"
+	}
+	return fmt.Sprintf("netinspector-%s.%s", scanID, extension)
+}
+
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -140,7 +247,7 @@ func withCORS(next http.Handler) http.Handler {
 		}
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Connect-Protocol-Version, Connect-Timeout, X-User-Agent")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Expose-Headers", "Grpc-Status, Grpc-Message, Connect-Protocol-Version")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition, Grpc-Status, Grpc-Message, Connect-Protocol-Version")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

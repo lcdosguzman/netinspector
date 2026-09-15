@@ -39,6 +39,11 @@ const (
 	// NetworkServiceStartScanProcedure is the fully-qualified name of the NetworkService's StartScan
 	// RPC.
 	NetworkServiceStartScanProcedure = "/network.v1.NetworkService/StartScan"
+	// NetworkServiceListScansProcedure is the fully-qualified name of the NetworkService's ListScans
+	// RPC.
+	NetworkServiceListScansProcedure = "/network.v1.NetworkService/ListScans"
+	// NetworkServiceGetScanProcedure is the fully-qualified name of the NetworkService's GetScan RPC.
+	NetworkServiceGetScanProcedure = "/network.v1.NetworkService/GetScan"
 	// NetworkServiceStreamScanProcedure is the fully-qualified name of the NetworkService's StreamScan
 	// RPC.
 	NetworkServiceStreamScanProcedure = "/network.v1.NetworkService/StreamScan"
@@ -51,6 +56,8 @@ const (
 type NetworkServiceClient interface {
 	GetLocalNetwork(context.Context, *connect.Request[v1.GetLocalNetworkRequest]) (*connect.Response[v1.GetLocalNetworkResponse], error)
 	StartScan(context.Context, *connect.Request[v1.StartScanRequest]) (*connect.Response[v1.ScanResult], error)
+	ListScans(context.Context, *connect.Request[v1.ListScansRequest]) (*connect.Response[v1.ListScansResponse], error)
+	GetScan(context.Context, *connect.Request[v1.GetScanRequest]) (*connect.Response[v1.ScanResult], error)
 	StreamScan(context.Context, *connect.Request[v1.StreamScanRequest]) (*connect.ServerStreamForClient[v1.ScanEvent], error)
 	InspectDevice(context.Context, *connect.Request[v1.InspectDeviceRequest]) (*connect.Response[v1.InspectDeviceResponse], error)
 }
@@ -78,6 +85,18 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(networkServiceMethods.ByName("StartScan")),
 			connect.WithClientOptions(opts...),
 		),
+		listScans: connect.NewClient[v1.ListScansRequest, v1.ListScansResponse](
+			httpClient,
+			baseURL+NetworkServiceListScansProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("ListScans")),
+			connect.WithClientOptions(opts...),
+		),
+		getScan: connect.NewClient[v1.GetScanRequest, v1.ScanResult](
+			httpClient,
+			baseURL+NetworkServiceGetScanProcedure,
+			connect.WithSchema(networkServiceMethods.ByName("GetScan")),
+			connect.WithClientOptions(opts...),
+		),
 		streamScan: connect.NewClient[v1.StreamScanRequest, v1.ScanEvent](
 			httpClient,
 			baseURL+NetworkServiceStreamScanProcedure,
@@ -97,6 +116,8 @@ func NewNetworkServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 type networkServiceClient struct {
 	getLocalNetwork *connect.Client[v1.GetLocalNetworkRequest, v1.GetLocalNetworkResponse]
 	startScan       *connect.Client[v1.StartScanRequest, v1.ScanResult]
+	listScans       *connect.Client[v1.ListScansRequest, v1.ListScansResponse]
+	getScan         *connect.Client[v1.GetScanRequest, v1.ScanResult]
 	streamScan      *connect.Client[v1.StreamScanRequest, v1.ScanEvent]
 	inspectDevice   *connect.Client[v1.InspectDeviceRequest, v1.InspectDeviceResponse]
 }
@@ -109,6 +130,16 @@ func (c *networkServiceClient) GetLocalNetwork(ctx context.Context, req *connect
 // StartScan calls network.v1.NetworkService.StartScan.
 func (c *networkServiceClient) StartScan(ctx context.Context, req *connect.Request[v1.StartScanRequest]) (*connect.Response[v1.ScanResult], error) {
 	return c.startScan.CallUnary(ctx, req)
+}
+
+// ListScans calls network.v1.NetworkService.ListScans.
+func (c *networkServiceClient) ListScans(ctx context.Context, req *connect.Request[v1.ListScansRequest]) (*connect.Response[v1.ListScansResponse], error) {
+	return c.listScans.CallUnary(ctx, req)
+}
+
+// GetScan calls network.v1.NetworkService.GetScan.
+func (c *networkServiceClient) GetScan(ctx context.Context, req *connect.Request[v1.GetScanRequest]) (*connect.Response[v1.ScanResult], error) {
+	return c.getScan.CallUnary(ctx, req)
 }
 
 // StreamScan calls network.v1.NetworkService.StreamScan.
@@ -125,6 +156,8 @@ func (c *networkServiceClient) InspectDevice(ctx context.Context, req *connect.R
 type NetworkServiceHandler interface {
 	GetLocalNetwork(context.Context, *connect.Request[v1.GetLocalNetworkRequest]) (*connect.Response[v1.GetLocalNetworkResponse], error)
 	StartScan(context.Context, *connect.Request[v1.StartScanRequest]) (*connect.Response[v1.ScanResult], error)
+	ListScans(context.Context, *connect.Request[v1.ListScansRequest]) (*connect.Response[v1.ListScansResponse], error)
+	GetScan(context.Context, *connect.Request[v1.GetScanRequest]) (*connect.Response[v1.ScanResult], error)
 	StreamScan(context.Context, *connect.Request[v1.StreamScanRequest], *connect.ServerStream[v1.ScanEvent]) error
 	InspectDevice(context.Context, *connect.Request[v1.InspectDeviceRequest]) (*connect.Response[v1.InspectDeviceResponse], error)
 }
@@ -148,6 +181,18 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 		connect.WithSchema(networkServiceMethods.ByName("StartScan")),
 		connect.WithHandlerOptions(opts...),
 	)
+	networkServiceListScansHandler := connect.NewUnaryHandler(
+		NetworkServiceListScansProcedure,
+		svc.ListScans,
+		connect.WithSchema(networkServiceMethods.ByName("ListScans")),
+		connect.WithHandlerOptions(opts...),
+	)
+	networkServiceGetScanHandler := connect.NewUnaryHandler(
+		NetworkServiceGetScanProcedure,
+		svc.GetScan,
+		connect.WithSchema(networkServiceMethods.ByName("GetScan")),
+		connect.WithHandlerOptions(opts...),
+	)
 	networkServiceStreamScanHandler := connect.NewServerStreamHandler(
 		NetworkServiceStreamScanProcedure,
 		svc.StreamScan,
@@ -166,6 +211,10 @@ func NewNetworkServiceHandler(svc NetworkServiceHandler, opts ...connect.Handler
 			networkServiceGetLocalNetworkHandler.ServeHTTP(w, r)
 		case NetworkServiceStartScanProcedure:
 			networkServiceStartScanHandler.ServeHTTP(w, r)
+		case NetworkServiceListScansProcedure:
+			networkServiceListScansHandler.ServeHTTP(w, r)
+		case NetworkServiceGetScanProcedure:
+			networkServiceGetScanHandler.ServeHTTP(w, r)
 		case NetworkServiceStreamScanProcedure:
 			networkServiceStreamScanHandler.ServeHTTP(w, r)
 		case NetworkServiceInspectDeviceProcedure:
@@ -185,6 +234,14 @@ func (UnimplementedNetworkServiceHandler) GetLocalNetwork(context.Context, *conn
 
 func (UnimplementedNetworkServiceHandler) StartScan(context.Context, *connect.Request[v1.StartScanRequest]) (*connect.Response[v1.ScanResult], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("network.v1.NetworkService.StartScan is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) ListScans(context.Context, *connect.Request[v1.ListScansRequest]) (*connect.Response[v1.ListScansResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("network.v1.NetworkService.ListScans is not implemented"))
+}
+
+func (UnimplementedNetworkServiceHandler) GetScan(context.Context, *connect.Request[v1.GetScanRequest]) (*connect.Response[v1.ScanResult], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("network.v1.NetworkService.GetScan is not implemented"))
 }
 
 func (UnimplementedNetworkServiceHandler) StreamScan(context.Context, *connect.Request[v1.StreamScanRequest], *connect.ServerStream[v1.ScanEvent]) error {

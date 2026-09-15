@@ -1,9 +1,25 @@
 package scanner
 
 import (
+	"context"
 	"reflect"
 	"testing"
+
+	"github.com/lcdosguzman/netinspector/internal/network"
 )
+
+type fakeDiscoverer struct {
+	source  DiscoverySource
+	devices []Device
+}
+
+func (discoverer fakeDiscoverer) Source() DiscoverySource {
+	return discoverer.source
+}
+
+func (discoverer fakeDiscoverer) Discover(_ context.Context, _ network.LocalNetwork) ([]Device, error) {
+	return discoverer.devices, nil
+}
 
 func TestHostsSkipsNetworkAndBroadcast(t *testing.T) {
 	got, err := hosts("192.168.1.0/30")
@@ -14,6 +30,46 @@ func TestHostsSkipsNetworkAndBroadcast(t *testing.T) {
 	want := []string{"192.168.1.1", "192.168.1.2"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("hosts() = %v, want %v", got, want)
+	}
+}
+
+func TestScanCIDRUsesConfiguredDiscoverers(t *testing.T) {
+	scanner := TCPScanner{
+		config: normalizeConfig(Config{}),
+		discoverers: []Discoverer{
+			fakeDiscoverer{
+				source: DiscoverySourceTCP,
+				devices: []Device{{
+					IP:       "192.168.1.2",
+					Type:     DeviceUnknown,
+					IsActive: true,
+				}},
+			},
+			fakeDiscoverer{
+				source: DiscoverySourceARP,
+				devices: []Device{{
+					IP:       "192.168.1.3",
+					MAC:      "84:15:d3:1b:8e:dd",
+					Type:     DeviceUnknown,
+					IsActive: true,
+				}},
+			},
+		},
+	}
+
+	result, err := scanner.ScanCIDR(context.Background(), network.LocalNetwork{CIDR: "192.168.1.0/30"})
+	if err != nil {
+		t.Fatalf("ScanCIDR returned error: %v", err)
+	}
+
+	if len(result.Devices) != 2 {
+		t.Fatalf("ScanCIDR returned %d devices, want 2", len(result.Devices))
+	}
+	if result.Events[1].Message != "Discovered 192.168.1.2" {
+		t.Fatalf("TCP discovery event = %q, want default discovery message", result.Events[1].Message)
+	}
+	if result.Events[2].Message != "Discovered 192.168.1.3 from ARP cache" {
+		t.Fatalf("ARP discovery event = %q, want ARP discovery message", result.Events[2].Message)
 	}
 }
 
@@ -109,6 +165,113 @@ func TestDeviceTypeFromMDNSService(t *testing.T) {
 		if got := deviceTypeFromMDNSService(serviceType); got != want {
 			t.Fatalf("deviceTypeFromMDNSService(%q) = %q, want %q", serviceType, got, want)
 		}
+	}
+}
+
+func TestParseSSDPResponse(t *testing.T) {
+	payload := "HTTP/1.1 200 OK\r\n" +
+		"CACHE-CONTROL: max-age=1800\r\n" +
+		"LOCATION: http://192.168.1.15:8008/ssdp/device-desc.xml\r\n" +
+		"SERVER: Linux/5.10 UPnP/1.0 GoogleCast/1.0\r\n" +
+		"ST: urn:dial-multiscreen-org:service:dial:1\r\n" +
+		"USN: uuid:device-id::urn:dial-multiscreen-org:service:dial:1\r\n\r\n"
+
+	response := parseSSDPResponse(payload)
+
+	if got := ssdpHeader(response.Headers, "location"); got != "http://192.168.1.15:8008/ssdp/device-desc.xml" {
+		t.Fatalf("location = %q, want descriptor URL", got)
+	}
+	if got := ssdpHeader(response.Headers, "server"); got != "Linux/5.10 UPnP/1.0 GoogleCast/1.0" {
+		t.Fatalf("server = %q, want GoogleCast server header", got)
+	}
+	if got := deviceTypeFromSSDP(response.Headers); got != DeviceTV {
+		t.Fatalf("deviceTypeFromSSDP() = %q, want %q", got, DeviceTV)
+	}
+}
+
+func TestDeviceTypeFromSSDP(t *testing.T) {
+	tests := []struct {
+		name    string
+		headers map[string]string
+		want    DeviceType
+	}{
+		{
+			name: "router",
+			headers: map[string]string{
+				"st": "urn:schemas-upnp-org:device:InternetGatewayDevice:1",
+			},
+			want: DeviceRouter,
+		},
+		{
+			name: "media renderer",
+			headers: map[string]string{
+				"st": "urn:schemas-upnp-org:device:MediaRenderer:1",
+			},
+			want: DeviceTV,
+		},
+		{
+			name: "printer",
+			headers: map[string]string{
+				"server": "Printer UPnP/1.0",
+			},
+			want: DevicePrinter,
+		},
+		{
+			name: "generic upnp",
+			headers: map[string]string{
+				"st": "upnp:rootdevice",
+			},
+			want: DeviceIoT,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := deviceTypeFromSSDP(test.headers); got != test.want {
+				t.Fatalf("deviceTypeFromSSDP() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestSSDPHints(t *testing.T) {
+	hints := ssdpHints(map[string]string{
+		"st":       "upnp:rootdevice",
+		"server":   "Linux/5.10 UPnP/1.0",
+		"location": "http://192.168.1.20:1900/device.xml",
+	})
+
+	if len(hints) != 4 {
+		t.Fatalf("ssdpHints() returned %d hints, want 4: %v", len(hints), hints)
+	}
+	if hints[0] != "Dispositivo anunciado por SSDP/UPnP." {
+		t.Fatalf("first hint = %q, want SSDP discovery hint", hints[0])
+	}
+}
+
+func TestCompactSSDPHints(t *testing.T) {
+	hints := compactSSDPHints([]string{
+		"Dispositivo anunciado por SSDP/UPnP.",
+		"Servicio UPnP: service-1.",
+		"Servicio UPnP: service-2.",
+		"Servicio UPnP: service-3.",
+		"Servicio UPnP: service-4.",
+		"Servicio UPnP: service-5.",
+		"Servicio UPnP: service-6.",
+		"Servicio UPnP: service-7.",
+		"Servidor UPnP: server-1.",
+		"Servidor UPnP: server-2.",
+		"Servidor UPnP: server-3.",
+		"Descriptor UPnP disponible en http://192.168.1.2/a.xml.",
+		"Descriptor UPnP disponible en http://192.168.1.2/b.xml.",
+		"Descriptor UPnP disponible en http://192.168.1.2/c.xml.",
+	})
+
+	if len(hints) != 11 {
+		t.Fatalf("compactSSDPHints() returned %d hints, want 11: %v", len(hints), hints)
+	}
+	if hints[len(hints)-1] != "Descriptor UPnP disponible en http://192.168.1.2/b.xml." {
+		t.Fatalf("last hint = %q, want second descriptor", hints[len(hints)-1])
 	}
 }
 

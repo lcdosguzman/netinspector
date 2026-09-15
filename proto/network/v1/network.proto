@@ -7,6 +7,8 @@ option go_package = "github.com/lcdosguzman/netinspector/internal/gen/network/v1
 service NetworkService {
   rpc GetLocalNetwork(GetLocalNetworkRequest) returns (GetLocalNetworkResponse);
   rpc StartScan(StartScanRequest) returns (ScanResult);
+  rpc ListScans(ListScansRequest) returns (ListScansResponse);
+  rpc GetScan(GetScanRequest) returns (ScanResult);
   rpc StreamScan(StreamScanRequest) returns (stream ScanEvent);
   rpc InspectDevice(InspectDeviceRequest) returns (InspectDeviceResponse);
 }
@@ -34,6 +36,28 @@ message ScanResult {
   int64 ended_at = 5;
   repeated Device devices = 6;
   repeated ScanEvent events = 7;
+}
+
+message ListScansRequest {
+  string query = 1;
+  int32 limit = 2;
+}
+
+message ListScansResponse {
+  repeated ScanSummary scans = 1;
+}
+
+message GetScanRequest {
+  string id = 1;
+}
+
+message ScanSummary {
+  string id = 1;
+  ScanMode mode = 2;
+  string network = 3;
+  int64 started_at = 4;
+  int64 ended_at = 5;
+  int32 device_count = 6;
 }
 
 message StreamScanRequest {
