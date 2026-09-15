@@ -1,0 +1,21 @@
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: internal/gen
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-connect-go
+    out: internal/gen
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-es
+    out: apps/dashboard/src/gen
+    opt:
+      - target=ts
+      - import_extension=none
+  - local: protoc-gen-connect-es
+    out: apps/dashboard/src/gen
+    opt:
+      - target=ts
+      - import_extension=none
+

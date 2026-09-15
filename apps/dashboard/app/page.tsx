@@ -1,6 +1,16 @@
 "use client";
 
+import { createPromiseClient } from "@connectrpc/connect";
+import { createConnectTransport } from "@connectrpc/connect-web";
 import { useMemo, useState } from "react";
+import { NetworkService } from "../src/gen/network/v1/network_connect";
+import {
+  DeviceType,
+  type ScanResult,
+  ScanEventType,
+  ScanMode as ProtoScanMode,
+  StartScanRequest
+} from "../src/gen/network/v1/network_pb";
 
 type ScanMode = "DEMO" | "REAL";
 type ScanStatus = "idle" | "running" | "success" | "error";
@@ -26,11 +36,10 @@ type Device = {
 type ScanEvent = {
   type: string;
   message: string;
-  deviceIp?: string;
-  timestamp: string;
+  timestamp: number;
 };
 
-type ScanResult = {
+type ScanView = {
   id: string;
   mode: ScanMode;
   network: string;
@@ -39,8 +48,10 @@ type ScanResult = {
 };
 
 const apiBaseURL = process.env.NEXT_PUBLIC_NETINSPECTOR_API_URL ?? "http://127.0.0.1:8088";
+const transport = createConnectTransport({ baseUrl: apiBaseURL });
+const client = createPromiseClient(NetworkService, transport);
 
-const emptyScan: ScanResult = {
+const emptyScan: ScanView = {
   id: "pending",
   mode: "DEMO",
   network: "Not scanned yet",
@@ -50,7 +61,7 @@ const emptyScan: ScanResult = {
 
 export default function Home() {
   const [mode, setMode] = useState<ScanMode>("DEMO");
-  const [scan, setScan] = useState<ScanResult>(emptyScan);
+  const [scan, setScan] = useState<ScanView>(emptyScan);
   const [selectedIP, setSelectedIP] = useState<string>();
   const [status, setStatus] = useState<ScanStatus>("idle");
   const [error, setError] = useState<string>();
@@ -64,20 +75,12 @@ export default function Home() {
     setError(undefined);
 
     try {
-      const response = await fetch(`${apiBaseURL}/api/scans`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode })
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => undefined)) as { error?: string } | undefined;
-        throw new Error(payload?.error ?? `Scan failed with HTTP ${response.status}`);
-      }
-
-      const result = (await response.json()) as ScanResult;
-      setScan(result);
-      setSelectedIP(result.devices[0]?.ip);
+      const result = await client.startScan(new StartScanRequest({
+        mode: mode === "REAL" ? ProtoScanMode.REAL : ProtoScanMode.DEMO
+      }));
+      const nextScan = scanResultToView(result);
+      setScan(nextScan);
+      setSelectedIP(nextScan.devices[0]?.ip);
       setStatus("success");
     } catch (scanError) {
       setStatus("error");
@@ -232,7 +235,7 @@ export default function Home() {
         {scan.events.length ? (
           scan.events.map((event) => (
             <p key={`${event.timestamp}-${event.message}`}>
-              [{event.type.toLowerCase()}] {event.message}
+              [{event.type}] {event.message}
             </p>
           ))
         ) : (
@@ -242,3 +245,56 @@ export default function Home() {
     </main>
   );
 }
+
+function scanResultToView(result: ScanResult): ScanView {
+  return {
+    id: result.id,
+    mode: result.mode === ProtoScanMode.REAL ? "REAL" : "DEMO",
+    network: result.network,
+    devices: result.devices.map((device) => ({
+      ip: device.ip,
+      hostname: device.hostname,
+      mac: device.mac,
+      vendor: device.vendor,
+      type: deviceTypeLabel(device.deviceType),
+      hints: device.hints,
+      latencyMs: Number(device.latencyMs),
+      isActive: device.isActive,
+      ports: device.ports.map((port) => ({
+        number: port.port,
+        protocol: port.protocol,
+        serviceName: port.serviceName
+      }))
+    })),
+    events: result.events.map((event) => ({
+      type: scanEventTypeLabel(event.eventType),
+      message: event.message,
+      timestamp: Number(event.timestamp)
+    }))
+  };
+}
+
+function deviceTypeLabel(deviceType: DeviceType): string {
+  return {
+    [DeviceType.UNSPECIFIED]: "UNKNOWN",
+    [DeviceType.ROUTER]: "ROUTER",
+    [DeviceType.DESKTOP]: "DESKTOP",
+    [DeviceType.MOBILE]: "MOBILE",
+    [DeviceType.TV]: "TV",
+    [DeviceType.PRINTER]: "PRINTER",
+    [DeviceType.IOT]: "IOT",
+    [DeviceType.UNKNOWN]: "UNKNOWN"
+  }[deviceType];
+}
+
+function scanEventTypeLabel(eventType: ScanEventType): string {
+  return {
+    [ScanEventType.UNSPECIFIED]: "event",
+    [ScanEventType.SCAN_STARTED]: "scan_started",
+    [ScanEventType.DEVICE_DISCOVERED]: "device_discovered",
+    [ScanEventType.DEVICE_UPDATED]: "device_updated",
+    [ScanEventType.SCAN_FINISHED]: "scan_finished",
+    [ScanEventType.SCAN_FAILED]: "scan_failed"
+  }[eventType];
+}
+

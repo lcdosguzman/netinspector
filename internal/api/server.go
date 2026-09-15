@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/lcdosguzman/netinspector/internal/demo"
+	networkv1connect "github.com/lcdosguzman/netinspector/internal/gen/network/v1/networkv1connect"
 	"github.com/lcdosguzman/netinspector/internal/network"
 	"github.com/lcdosguzman/netinspector/internal/scanner"
 )
@@ -38,6 +39,8 @@ func (server Server) ListenAndServe(ctx context.Context) error {
 	mux.HandleFunc("GET /healthz", server.handleHealth)
 	mux.HandleFunc("GET /api/local-network", server.handleLocalNetwork)
 	mux.HandleFunc("POST /api/scans", server.handleStartScan)
+	path, handler := networkv1connect.NewNetworkServiceHandler(newNetworkService(server.config))
+	mux.Handle(path, handler)
 
 	httpServer := &http.Server{
 		Addr:              server.config.Addr,
@@ -135,8 +138,9 @@ func withCORS(next http.Handler) http.Handler {
 		if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		}
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Connect-Protocol-Version, Connect-Timeout, X-User-Agent")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Expose-Headers", "Grpc-Status, Grpc-Message, Connect-Protocol-Version")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

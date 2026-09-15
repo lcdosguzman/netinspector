@@ -1,0 +1,196 @@
+package api
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"connectrpc.com/connect"
+
+	"github.com/lcdosguzman/netinspector/internal/demo"
+	networkv1 "github.com/lcdosguzman/netinspector/internal/gen/network/v1"
+	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/netinspector/internal/scanner"
+)
+
+type networkService struct {
+	scanTimeoutConfig Config
+}
+
+func newNetworkService(config Config) networkService {
+	return networkService{scanTimeoutConfig: config}
+}
+
+func (service networkService) GetLocalNetwork(_ context.Context, _ *connect.Request[networkv1.GetLocalNetworkRequest]) (*connect.Response[networkv1.GetLocalNetworkResponse], error) {
+	local, err := network.DetectLocalNetwork()
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnavailable, err)
+	}
+
+	return connect.NewResponse(&networkv1.GetLocalNetworkResponse{
+		InterfaceName: local.InterfaceName,
+		Ip:            local.IP,
+		Cidr:          local.CIDR,
+	}), nil
+}
+
+func (service networkService) StartScan(ctx context.Context, request *connect.Request[networkv1.StartScanRequest]) (*connect.Response[networkv1.ScanResult], error) {
+	result, err := service.scan(ctx, request.Msg.Mode, request.Msg.Cidr)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(scanResultToProto(result)), nil
+}
+
+func (service networkService) StreamScan(ctx context.Context, request *connect.Request[networkv1.StreamScanRequest], stream *connect.ServerStream[networkv1.ScanEvent]) error {
+	result := demo.NewScan()
+	if request.Msg.ScanId != "" && request.Msg.ScanId != result.ID {
+		return connect.NewError(connect.CodeNotFound, fmt.Errorf("scan %q not found", request.Msg.ScanId))
+	}
+
+	for _, event := range result.Events {
+		if err := stream.Send(scanEventToProto(event)); err != nil {
+			return err
+		}
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+	}
+	return nil
+}
+
+func (service networkService) InspectDevice(_ context.Context, request *connect.Request[networkv1.InspectDeviceRequest]) (*connect.Response[networkv1.InspectDeviceResponse], error) {
+	return connect.NewResponse(&networkv1.InspectDeviceResponse{
+		Ip:          request.Msg.Ip,
+		OpenPorts:   nil,
+		EstimatedOs: "Unknown",
+	}), nil
+}
+
+func (service networkService) scan(ctx context.Context, mode networkv1.ScanMode, cidr string) (scanner.ScanResult, error) {
+	switch mode {
+	case networkv1.ScanMode_SCAN_MODE_UNSPECIFIED, networkv1.ScanMode_SCAN_MODE_DEMO:
+		return demo.NewScan(), nil
+	case networkv1.ScanMode_SCAN_MODE_REAL:
+		local, err := network.DetectLocalNetwork()
+		if err != nil {
+			return scanner.ScanResult{}, connect.NewError(connect.CodeUnavailable, err)
+		}
+		if cidr != "" {
+			local.CIDR = cidr
+		}
+
+		tcpScanner := scanner.NewTCPScanner(scanner.Config{
+			Ports:       scanner.DefaultDiscoveryPorts(),
+			Concurrency: 128,
+			Timeout:     service.scanTimeoutConfig.ScanTimeout,
+		})
+		result, err := tcpScanner.ScanCIDR(ctx, local)
+		if err != nil {
+			return scanner.ScanResult{}, connect.NewError(connect.CodeInternal, err)
+		}
+		return result, nil
+	default:
+		return scanner.ScanResult{}, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("unsupported scan mode %s", mode.String()))
+	}
+}
+
+func scanResultToProto(result scanner.ScanResult) *networkv1.ScanResult {
+	devices := make([]*networkv1.Device, 0, len(result.Devices))
+	for _, device := range result.Devices {
+		devices = append(devices, deviceToProto(device))
+	}
+
+	events := make([]*networkv1.ScanEvent, 0, len(result.Events))
+	for _, event := range result.Events {
+		events = append(events, scanEventToProto(event))
+	}
+
+	return &networkv1.ScanResult{
+		Id:        result.ID,
+		Mode:      scanModeToProto(result.Mode),
+		Network:   result.Network,
+		StartedAt: result.StartedAt.UnixMilli(),
+		EndedAt:   result.EndedAt.UnixMilli(),
+		Devices:   devices,
+		Events:    events,
+	}
+}
+
+func deviceToProto(device scanner.Device) *networkv1.Device {
+	ports := make([]*networkv1.PortInfo, 0, len(device.Ports))
+	for _, port := range device.Ports {
+		ports = append(ports, &networkv1.PortInfo{
+			Port:        int32(port.Number),
+			Protocol:    port.Protocol,
+			ServiceName: port.ServiceName,
+		})
+	}
+
+	return &networkv1.Device{
+		Ip:         device.IP,
+		Mac:        device.MAC,
+		Vendor:     device.Vendor,
+		Hostname:   device.Hostname,
+		LatencyMs:  device.LatencyMS,
+		IsActive:   device.IsActive,
+		DeviceType: deviceTypeToProto(device.Type),
+		Ports:      ports,
+		Hints:      device.Hints,
+	}
+}
+
+func scanEventToProto(event scanner.ScanEvent) *networkv1.ScanEvent {
+	return &networkv1.ScanEvent{
+		EventType: scanEventTypeToProto(event.Type),
+		Message:   event.Message,
+		Timestamp: event.Timestamp.UnixMilli(),
+	}
+}
+
+func scanModeToProto(mode string) networkv1.ScanMode {
+	switch strings.ToUpper(mode) {
+	case "REAL":
+		return networkv1.ScanMode_SCAN_MODE_REAL
+	case "DEMO":
+		return networkv1.ScanMode_SCAN_MODE_DEMO
+	default:
+		return networkv1.ScanMode_SCAN_MODE_UNSPECIFIED
+	}
+}
+
+func deviceTypeToProto(deviceType scanner.DeviceType) networkv1.DeviceType {
+	switch deviceType {
+	case scanner.DeviceRouter:
+		return networkv1.DeviceType_DEVICE_TYPE_ROUTER
+	case scanner.DeviceDesktop:
+		return networkv1.DeviceType_DEVICE_TYPE_DESKTOP
+	case scanner.DeviceMobile:
+		return networkv1.DeviceType_DEVICE_TYPE_MOBILE
+	case scanner.DeviceTV:
+		return networkv1.DeviceType_DEVICE_TYPE_TV
+	case scanner.DevicePrinter:
+		return networkv1.DeviceType_DEVICE_TYPE_PRINTER
+	case scanner.DeviceIoT:
+		return networkv1.DeviceType_DEVICE_TYPE_IOT
+	default:
+		return networkv1.DeviceType_DEVICE_TYPE_UNKNOWN
+	}
+}
+
+func scanEventTypeToProto(eventType string) networkv1.ScanEventType {
+	switch strings.ToUpper(eventType) {
+	case "SCAN_STARTED":
+		return networkv1.ScanEventType_SCAN_EVENT_TYPE_SCAN_STARTED
+	case "DEVICE_DISCOVERED":
+		return networkv1.ScanEventType_SCAN_EVENT_TYPE_DEVICE_DISCOVERED
+	case "DEVICE_UPDATED":
+		return networkv1.ScanEventType_SCAN_EVENT_TYPE_DEVICE_UPDATED
+	case "SCAN_FINISHED":
+		return networkv1.ScanEventType_SCAN_EVENT_TYPE_SCAN_FINISHED
+	case "SCAN_FAILED":
+		return networkv1.ScanEventType_SCAN_EVENT_TYPE_SCAN_FAILED
+	default:
+		return networkv1.ScanEventType_SCAN_EVENT_TYPE_UNSPECIFIED
+	}
+}

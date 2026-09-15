@@ -6,7 +6,7 @@ option go_package = "github.com/lcdosguzman/netinspector/internal/gen/network/v1
 
 service NetworkService {
   rpc GetLocalNetwork(GetLocalNetworkRequest) returns (GetLocalNetworkResponse);
-  rpc StartScan(StartScanRequest) returns (StartScanResponse);
+  rpc StartScan(StartScanRequest) returns (ScanResult);
   rpc StreamScan(StreamScanRequest) returns (stream ScanEvent);
   rpc InspectDevice(InspectDeviceRequest) returns (InspectDeviceResponse);
 }
@@ -26,9 +26,14 @@ message StartScanRequest {
   string cidr = 3;
 }
 
-message StartScanResponse {
-  string scan_id = 1;
-  int32 target_hosts = 2;
+message ScanResult {
+  string id = 1;
+  ScanMode mode = 2;
+  string network = 3;
+  int64 started_at = 4;
+  int64 ended_at = 5;
+  repeated Device devices = 6;
+  repeated ScanEvent events = 7;
 }
 
 message StreamScanRequest {
@@ -50,6 +55,8 @@ message Device {
   int64 latency_ms = 5;
   bool is_active = 6;
   DeviceType device_type = 7;
+  repeated PortInfo ports = 8;
+  repeated string hints = 9;
 }
 
 message InspectDeviceRequest {
@@ -95,4 +102,3 @@ enum DeviceType {
   DEVICE_TYPE_IOT = 6;
   DEVICE_TYPE_UNKNOWN = 7;
 }
-

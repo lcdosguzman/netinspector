@@ -17,12 +17,14 @@ NetInspector is a local network discovery and inspection dashboard built with Go
 ```text
 netinspector/
   cmd/netinspector/        Go CLI and API server entrypoint
-  internal/api/            HTTP API for local scans
+  internal/api/            Connect-RPC service and compatibility JSON API
+  internal/gen/            Generated Go Protobuf and Connect code
   internal/demo/           Demo scan data
   internal/network/        Local network detection
   internal/scanner/        TCP probes, ARP parsing, OUI/vendor enrichment
-  proto/network/v1/        Future typed API contract
+  proto/network/v1/        Protobuf API contract
   apps/dashboard/          Next.js dashboard
+  apps/dashboard/src/gen/  Generated TypeScript Protobuf and Connect client
 ```
 
 ## Current MVP
@@ -37,8 +39,10 @@ Implemented:
 - ARP cache discovery to find devices that do not expose common TCP ports.
 - OUI/vendor enrichment for known MAC prefixes.
 - Basic device type inference.
-- HTTP API server.
+- Connect-RPC API generated from Protocol Buffers.
+- Compatibility HTTP JSON endpoints.
 - Interactive Next.js dashboard.
+- TypeScript dashboard client generated from the same `.proto` contract used by Go.
 - Scanner tests.
 
 Known limitations:
@@ -71,8 +75,19 @@ go run ./cmd/netinspector -serve
 Available endpoints:
 
 - `GET /healthz`
+- `POST /network.v1.NetworkService/StartScan` via Connect-RPC
+- `POST /network.v1.NetworkService/GetLocalNetwork` via Connect-RPC
 - `GET /api/local-network`
 - `POST /api/scans` with `{"mode":"DEMO"}` or `{"mode":"REAL"}`
+
+Generate Protobuf and Connect code:
+
+```sh
+npm install
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+PATH="$PATH:$(go env GOPATH)/bin:$(pwd)/node_modules/.bin" npm run proto:generate
+```
 
 Dashboard:
 
@@ -116,7 +131,5 @@ npm run build
 - Add mDNS/Bonjour hostname discovery.
 - Add React Flow for a richer topology graph.
 - Add SQLite scan history.
-- Add Connect-RPC / Protocol Buffers API generation.
 - Add deeper device inspection on demand.
 - Improve cross-platform discovery for Linux and Windows.
-

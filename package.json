@@ -1,0 +1,13 @@
+{
+  "name": "netinspector-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "proto:generate": "buf generate"
+  },
+  "devDependencies": {
+    "@bufbuild/buf": "^1.57.2",
+    "@bufbuild/protoc-gen-es": "^1.10.1",
+    "@connectrpc/protoc-gen-connect-es": "^1.6.1"
+  }
+}
