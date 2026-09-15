@@ -148,7 +148,8 @@ export default function Home() {
             <>
               <button className="gateway" onClick={() => setSelectedIP(scan.devices[0]?.ip)} type="button">
                 <span>{scan.devices[0]?.type ?? "Gateway"}</span>
-                <strong>{scan.devices[0]?.ip}</strong>
+                <strong>{scan.devices[0]?.hostname || scan.devices[0]?.ip}</strong>
+                {scan.devices[0]?.hostname ? <small>{scan.devices[0]?.ip}</small> : null}
               </button>
               <div className="orbit">
                 {scan.devices.slice(1).map((device) => (
@@ -159,7 +160,8 @@ export default function Home() {
                     type="button"
                   >
                     <span>{device.type}</span>
-                    <strong>{device.ip}</strong>
+                    <strong>{device.hostname || device.ip}</strong>
+                    {device.hostname ? <small>{device.ip}</small> : null}
                     <small>{device.vendor || "Unknown vendor"}</small>
                   </button>
                 ))}
@@ -297,4 +299,3 @@ function scanEventTypeLabel(eventType: ScanEventType): string {
     [ScanEventType.SCAN_FAILED]: "scan_failed"
   }[eventType];
 }
-

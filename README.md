@@ -6,9 +6,9 @@ NetInspector is a local network discovery and inspection dashboard built with Go
 
 - Detects the active local IPv4 network.
 - Runs a demo scan with realistic sample devices.
-- Runs a real scan using controlled TCP probes and the local ARP cache.
+- Runs a real scan using controlled TCP probes, the local ARP cache, and mDNS/Bonjour service discovery.
 - Shows discovered devices in a dashboard.
-- Displays IP, MAC, vendor, inferred device type, latency, open ports, and identification hints.
+- Displays IP, hostname, MAC, vendor, inferred device type, latency, open ports, and identification hints.
 - Uses OUI-based MAC vendor lookup for known prefixes.
 - Flags private/randomized MAC addresses, which are common on phones, tablets, and laptops with Wi-Fi privacy enabled.
 
@@ -21,7 +21,7 @@ netinspector/
   internal/gen/            Generated Go Protobuf and Connect code
   internal/demo/           Demo scan data
   internal/network/        Local network detection
-  internal/scanner/        TCP probes, ARP parsing, OUI/vendor enrichment
+  internal/scanner/        TCP probes, ARP parsing, mDNS discovery, OUI/vendor enrichment
   proto/network/v1/        Protobuf API contract
   apps/dashboard/          Next.js dashboard
   apps/dashboard/src/gen/  Generated TypeScript Protobuf and Connect client
@@ -37,6 +37,7 @@ Implemented:
 - Demo scan with realistic sample devices.
 - Real scan with TCP probes for common ports.
 - ARP cache discovery to find devices that do not expose common TCP ports.
+- mDNS/Bonjour discovery for `.local` hostnames and advertised services such as AirPlay, Google Cast, SMB, SSH, HTTP, and printers.
 - OUI/vendor enrichment for known MAC prefixes.
 - Basic device type inference.
 - Connect-RPC API generated from Protocol Buffers.
@@ -49,6 +50,7 @@ Known limitations:
 
 - OUI identifies the network chip/vendor, not always the commercial product brand.
 - Phones and laptops may use private/randomized MAC addresses, so their real manufacturer cannot always be inferred.
+- mDNS/Bonjour only enriches devices that advertise services on the local network.
 - The current real scanner is intentionally conservative and avoids raw packet capture for MVP portability.
 - The dashboard graph is custom/static positioning for now; React Flow integration is planned.
 
@@ -128,7 +130,6 @@ npm run build
 ## Roadmap
 
 - Replace the seed OUI table with a complete local IEEE OUI database.
-- Add mDNS/Bonjour hostname discovery.
 - Add React Flow for a richer topology graph.
 - Add SQLite scan history.
 - Add deeper device inspection on demand.

@@ -114,6 +114,19 @@ func (scanner TCPScanner) ScanCIDR(ctx context.Context, local network.LocalNetwo
 		}
 	}
 
+	for _, device := range mdnsNeighbors(ctx, local.CIDR, 2*time.Second) {
+		alreadyKnown := hasDevice(result.Devices, device.IP)
+		result.Devices = mergeDevice(result.Devices, device)
+		if !alreadyKnown {
+			result.Events = append(result.Events, ScanEvent{
+				Type:      "DEVICE_DISCOVERED",
+				Message:   fmt.Sprintf("Discovered %s from mDNS/Bonjour", device.IP),
+				DeviceIP:  device.IP,
+				Timestamp: time.Now().UTC(),
+			})
+		}
+	}
+
 	for index, device := range result.Devices {
 		result.Devices[index] = enrichDevice(device)
 	}
@@ -150,6 +163,7 @@ func mergeDevice(devices []Device, next Device) []Device {
 		if existing.Type == "" || existing.Type == DeviceUnknown {
 			existing.Type = next.Type
 		}
+		existing.Hints = appendUnique(existing.Hints, next.Hints...)
 		if existing.LatencyMS == 0 {
 			existing.LatencyMS = next.LatencyMS
 		}

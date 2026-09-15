@@ -36,10 +36,13 @@ var ouiVendors = map[string]string{
 
 func enrichDevice(device Device) Device {
 	device.Vendor = vendorName(device.MAC, device.Vendor)
-	device.Hints = identificationHints(device)
+	device.Hints = appendUnique(device.Hints, identificationHints(device)...)
 
-	if device.Type == "" || device.Type == DeviceUnknown {
-		device.Type = inferDeviceType(device)
+	inferredType := inferDeviceType(device)
+	if inferredType != DeviceUnknown {
+		device.Type = inferredType
+	} else if device.Type == "" {
+		device.Type = DeviceUnknown
 	}
 
 	return device
@@ -93,6 +96,7 @@ func identificationHints(device Device) []string {
 
 func inferDeviceType(device Device) DeviceType {
 	vendor := strings.ToLower(device.Vendor)
+	hostname := strings.ToLower(device.Hostname)
 
 	if hasPort(device, 53) && hasPort(device, 80) {
 		return DeviceRouter
@@ -100,14 +104,20 @@ func inferDeviceType(device Device) DeviceType {
 	if hasPort(device, 631) {
 		return DevicePrinter
 	}
+	if strings.Contains(hostname, "tv") {
+		return DeviceTV
+	}
+	if strings.Contains(hostname, "iphone") || strings.Contains(hostname, "ipad") || strings.Contains(hostname, "android") {
+		return DeviceMobile
+	}
+	if strings.Contains(vendor, "apple") || strings.Contains(vendor, "intel") || strings.Contains(hostname, "macbook") || strings.Contains(hostname, "desktop") {
+		return DeviceDesktop
+	}
 	if strings.Contains(vendor, "samsung") || strings.Contains(vendor, "sony") || strings.Contains(vendor, "vestel") || hasPort(device, 8000) || hasPort(device, 8008) || hasPort(device, 8060) || hasPort(device, 8443) {
 		return DeviceTV
 	}
 	if strings.Contains(vendor, "gaoshengda") {
 		return DeviceIoT
-	}
-	if strings.Contains(vendor, "apple") || strings.Contains(vendor, "intel") {
-		return DeviceDesktop
 	}
 	if strings.Contains(vendor, "private/randomized") {
 		return DeviceMobile

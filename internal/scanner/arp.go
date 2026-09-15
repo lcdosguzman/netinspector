@@ -29,7 +29,7 @@ func parseARPNeighbors(output string, cidr string) []Device {
 
 	for _, match := range matches {
 		ip := net.ParseIP(match[1]).To4()
-		if ip == nil || !ipNet.Contains(ip) {
+		if ip == nil || !ipNet.Contains(ip) || isNetworkBoundary(ip, ipNet) {
 			continue
 		}
 
@@ -64,4 +64,23 @@ func firstHost(ipNet *net.IPNet) string {
 	first := cloneIP(ip)
 	incrementIP(first)
 	return first.String()
+}
+
+func isNetworkBoundary(ip net.IP, ipNet *net.IPNet) bool {
+	network := ipNet.IP.To4()
+	if network == nil {
+		return false
+	}
+
+	ip = ip.To4()
+	if ip == nil {
+		return false
+	}
+
+	broadcast := cloneIP(network)
+	for index := range broadcast {
+		broadcast[index] |= ^ipNet.Mask[index]
+	}
+
+	return ip.Equal(network) || ip.Equal(broadcast)
 }
