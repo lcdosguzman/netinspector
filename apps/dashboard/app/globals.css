@@ -144,8 +144,6 @@ dt {
 
 .topology {
   position: relative;
-  display: grid;
-  place-items: center;
   min-height: 480px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -157,67 +155,99 @@ dt {
   background-size: 44px 44px;
 }
 
-.gateway,
-.node {
+.topologyGraph {
+  height: 100%;
+  min-height: 480px;
+}
+
+.topologyGraph .react-flow__pane {
+  cursor: grab;
+}
+
+.topologyGraph .react-flow__pane:active {
+  cursor: grabbing;
+}
+
+.topologyGraph .react-flow__node {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.flowNodeLabel {
   display: grid;
   gap: 6px;
-  width: 150px;
+  width: 176px;
+  min-height: 104px;
   border: 1px solid rgba(81, 199, 168, 0.55);
   border-radius: 8px;
   background: var(--panel-strong);
   padding: 14px;
   text-align: center;
-  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+  cursor: grab;
 }
 
-.gateway {
-  position: relative;
-  z-index: 2;
+.gatewayNode .flowNodeLabel {
+  border-color: var(--accent);
   box-shadow: 0 0 0 10px rgba(81, 199, 168, 0.08);
 }
 
-.gateway span,
-.node span,
-.node small {
+.flowNodeLabel span,
+.flowNodeLabel small {
   color: var(--muted);
   font-size: 12px;
 }
 
-.node small {
+.flowNodeLabel strong,
+.flowNodeLabel small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.orbit {
-  position: absolute;
-  inset: 48px;
+.selectedNode .flowNodeLabel {
+  border-color: var(--accent-strong);
+  box-shadow:
+    0 0 0 3px rgba(114, 224, 191, 0.2),
+    0 18px 42px rgba(0, 0, 0, 0.3);
 }
 
-.node {
-  position: absolute;
+.selectedEdge {
+  filter: drop-shadow(0 0 5px rgba(114, 224, 191, 0.5));
 }
 
-.node.selected,
-.gateway:focus-visible,
-.node:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: 3px;
+.topologyGraph .react-flow__controls,
+.topologyGraph .react-flow__minimap {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(25, 29, 36, 0.92);
+  box-shadow: none;
 }
 
-.node:nth-child(1) {
-  top: 8%;
-  left: 16%;
+.topologyGraph .react-flow__minimap {
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+  width: 144px;
+  height: 92px;
 }
 
-.node:nth-child(2) {
-  right: 12%;
-  top: 28%;
+.topologyGraph .react-flow__controls-button {
+  width: 30px;
+  height: 30px;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
 }
 
-.node:nth-child(3) {
-  bottom: 12%;
-  left: 38%;
+.topologyGraph .react-flow__controls-button:hover {
+  background: var(--panel-strong);
+}
+
+.topologyGraph .react-flow__controls-button svg {
+  fill: currentColor;
 }
 
 .inspector {

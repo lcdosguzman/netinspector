@@ -2,7 +2,18 @@
 
 import { createPromiseClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
-import { useMemo, useState } from "react";
+import {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  type Edge,
+  MarkerType,
+  type Node,
+  type NodeMouseHandler
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { useMemo, useState, type ReactNode } from "react";
 import { NetworkService } from "../src/gen/network/v1/network_connect";
 import {
   DeviceType,
@@ -47,6 +58,8 @@ type ScanView = {
   events: ScanEvent[];
 };
 
+type TopologyNode = Node<{ label: ReactNode }>;
+
 const apiBaseURL = process.env.NEXT_PUBLIC_NETINSPECTOR_API_URL ?? "http://127.0.0.1:8088";
 const transport = createConnectTransport({ baseUrl: apiBaseURL });
 const client = createPromiseClient(NetworkService, transport);
@@ -69,6 +82,12 @@ export default function Home() {
   const selectedDevice = useMemo(() => {
     return scan.devices.find((device) => device.ip === selectedIP) ?? scan.devices[0];
   }, [scan.devices, selectedIP]);
+
+  const topology = useMemo(() => buildTopology(scan.devices, selectedIP), [scan.devices, selectedIP]);
+
+  const handleNodeClick: NodeMouseHandler<TopologyNode> = (_event, node) => {
+    setSelectedIP(node.id);
+  };
 
   async function startScan() {
     setStatus("running");
@@ -143,30 +162,32 @@ export default function Home() {
       {error ? <p className="banner">{error}</p> : null}
 
       <section className="workspace">
-        <div className="topology" aria-label="Topology graph placeholder">
+        <div className="topology" aria-label="Interactive topology graph">
           {selectedDevice ? (
-            <>
-              <button className="gateway" onClick={() => setSelectedIP(scan.devices[0]?.ip)} type="button">
-                <span>{scan.devices[0]?.type ?? "Gateway"}</span>
-                <strong>{scan.devices[0]?.hostname || scan.devices[0]?.ip}</strong>
-                {scan.devices[0]?.hostname ? <small>{scan.devices[0]?.ip}</small> : null}
-              </button>
-              <div className="orbit">
-                {scan.devices.slice(1).map((device) => (
-                  <button
-                    className={`node ${device.ip === selectedDevice.ip ? "selected" : ""}`}
-                    key={device.ip}
-                    onClick={() => setSelectedIP(device.ip)}
-                    type="button"
-                  >
-                    <span>{device.type}</span>
-                    <strong>{device.hostname || device.ip}</strong>
-                    {device.hostname ? <small>{device.ip}</small> : null}
-                    <small>{device.vendor || "Unknown vendor"}</small>
-                  </button>
-                ))}
-              </div>
-            </>
+            <ReactFlow<TopologyNode, Edge>
+              className="topologyGraph"
+              colorMode="dark"
+              edges={topology.edges}
+              fitView
+              fitViewOptions={{ padding: 0.25 }}
+              maxZoom={1.6}
+              minZoom={0.45}
+              nodes={topology.nodes}
+              nodesConnectable={false}
+              onNodeClick={handleNodeClick}
+              panOnScroll
+              proOptions={{ hideAttribution: true }}
+            >
+              <Background color="rgba(154, 166, 178, 0.22)" gap={28} />
+              <MiniMap
+                maskColor="rgba(17, 19, 24, 0.68)"
+                nodeColor={(node) => (node.id === selectedDevice.ip ? "#72e0bf" : "#303846")}
+                nodeStrokeWidth={3}
+                pannable
+                zoomable
+              />
+              <Controls showInteractive={false} />
+            </ReactFlow>
           ) : (
             <div className="emptyState">
               <strong>No scan data yet</strong>
@@ -245,6 +266,68 @@ export default function Home() {
         )}
       </section>
     </main>
+  );
+}
+
+function buildTopology(devices: Device[], selectedIP?: string): { nodes: TopologyNode[]; edges: Edge[] } {
+  if (!devices.length) {
+    return { nodes: [], edges: [] };
+  }
+
+  const gateway = devices[0];
+  const leafDevices = devices.slice(1);
+  const radius = Math.max(190, Math.min(330, 150 + leafDevices.length * 26));
+  const nodes: TopologyNode[] = [
+    {
+      id: gateway.ip,
+      type: "default",
+      position: { x: 0, y: 0 },
+      className: `flowNode gatewayNode ${gateway.ip === selectedIP ? "selectedNode" : ""}`,
+      data: { label: <TopologyNodeLabel device={gateway} /> }
+    }
+  ];
+
+  leafDevices.forEach((device, index) => {
+    const angle = (index / Math.max(leafDevices.length, 1)) * Math.PI * 2 - Math.PI / 2;
+    nodes.push({
+      id: device.ip,
+      type: "default",
+      position: {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius
+      },
+      className: `flowNode deviceNode ${device.ip === selectedIP ? "selectedNode" : ""}`,
+      data: { label: <TopologyNodeLabel device={device} /> }
+    });
+  });
+
+  const edges: Edge[] = leafDevices.map((device) => ({
+    id: `${gateway.ip}-${device.ip}`,
+    source: gateway.ip,
+    target: device.ip,
+    animated: device.ip === selectedIP,
+    className: device.ip === selectedIP ? "selectedEdge" : undefined,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: device.ip === selectedIP ? "#72e0bf" : "#526070"
+    },
+    style: {
+      stroke: device.ip === selectedIP ? "#72e0bf" : "#526070",
+      strokeWidth: device.ip === selectedIP ? 2.5 : 1.5
+    }
+  }));
+
+  return { nodes, edges };
+}
+
+function TopologyNodeLabel({ device }: { device: Device }) {
+  return (
+    <div className="flowNodeLabel">
+      <span>{device.type}</span>
+      <strong>{device.hostname || device.ip}</strong>
+      {device.hostname ? <small>{device.ip}</small> : null}
+      <small>{device.vendor || "Unknown vendor"}</small>
+    </div>
   );
 }
 

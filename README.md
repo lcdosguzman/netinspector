@@ -8,6 +8,7 @@ NetInspector is a local network discovery and inspection dashboard built with Go
 - Runs a demo scan with realistic sample devices.
 - Runs a real scan using controlled TCP probes, the local ARP cache, and mDNS/Bonjour service discovery.
 - Shows discovered devices in a dashboard.
+- Renders the topology with an interactive React Flow graph.
 - Displays IP, hostname, MAC, vendor, inferred device type, latency, open ports, and identification hints.
 - Uses OUI-based MAC vendor lookup for known prefixes.
 - Flags private/randomized MAC addresses, which are common on phones, tablets, and laptops with Wi-Fi privacy enabled.
@@ -43,6 +44,7 @@ Implemented:
 - Connect-RPC API generated from Protocol Buffers.
 - Compatibility HTTP JSON endpoints.
 - Interactive Next.js dashboard.
+- React Flow topology graph with draggable nodes, zoom, pan, minimap, and selectable devices.
 - TypeScript dashboard client generated from the same `.proto` contract used by Go.
 - Scanner tests.
 
@@ -52,7 +54,7 @@ Known limitations:
 - Phones and laptops may use private/randomized MAC addresses, so their real manufacturer cannot always be inferred.
 - mDNS/Bonjour only enriches devices that advertise services on the local network.
 - The current real scanner is intentionally conservative and avoids raw packet capture for MVP portability.
-- The dashboard graph is custom/static positioning for now; React Flow integration is planned.
+- The topology layout is deterministic for the MVP; automated layout can be added as the graph grows.
 
 ## Run
 
@@ -130,7 +132,6 @@ npm run build
 ## Roadmap
 
 - Replace the seed OUI table with a complete local IEEE OUI database.
-- Add React Flow for a richer topology graph.
 - Add SQLite scan history.
 - Add deeper device inspection on demand.
 - Improve cross-platform discovery for Linux and Windows.
