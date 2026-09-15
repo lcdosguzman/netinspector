@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/demo"
 	networkv1connect "github.com/lcdosguzman/netinspector/internal/gen/network/v1/networkv1connect"
 	"github.com/lcdosguzman/netinspector/internal/network"
 	"github.com/lcdosguzman/netinspector/internal/report"
 	"github.com/lcdosguzman/netinspector/internal/scanner"
+	appservice "github.com/lcdosguzman/netinspector/internal/service"
 	"github.com/lcdosguzman/netinspector/internal/storage"
 )
 
@@ -28,6 +28,7 @@ type Config struct {
 type Server struct {
 	config     Config
 	repository storage.ScanRepository
+	scans      appservice.ScanService
 }
 
 func NewServer(config Config) Server {
@@ -52,6 +53,10 @@ func (server Server) ListenAndServe(ctx context.Context) error {
 	defer repository.Close()
 
 	server.repository = repository
+	server.scans = appservice.NewScanService(appservice.ScanServiceConfig{
+		Repository:  repository,
+		ScanTimeout: server.config.ScanTimeout,
+	})
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", server.handleHealth)
@@ -60,7 +65,7 @@ func (server Server) ListenAndServe(ctx context.Context) error {
 	mux.HandleFunc("GET /api/scans/{id}/export/{format}", server.handleExportScan)
 	mux.HandleFunc("GET /api/scans/{id}", server.handleGetScan)
 	mux.HandleFunc("POST /api/scans", server.handleStartScan)
-	path, handler := networkv1connect.NewNetworkServiceHandler(newNetworkService(server.config, repository))
+	path, handler := networkv1connect.NewNetworkServiceHandler(newNetworkService(repository, server.scans))
 	mux.Handle(path, handler)
 
 	httpServer := &http.Server{
@@ -109,37 +114,15 @@ func (server Server) handleStartScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch request.Mode {
-	case "", "DEMO":
-		writeJSON(w, http.StatusOK, demo.NewScan())
-	case "REAL":
-		local, err := network.DetectLocalNetwork()
-		if err != nil {
-			writeError(w, http.StatusServiceUnavailable, err)
-			return
-		}
-		if request.CIDR != "" {
-			local.CIDR = request.CIDR
-		}
-
-		tcpScanner := scanner.NewTCPScanner(scanner.Config{
-			Ports:       scanner.DefaultDiscoveryPorts(),
-			Concurrency: 128,
-			Timeout:     server.config.ScanTimeout,
-		})
-		result, err := tcpScanner.ScanCIDR(r.Context(), local)
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, err)
-			return
-		}
-		if err := server.repository.SaveScan(r.Context(), result); err != nil {
-			writeError(w, http.StatusInternalServerError, err)
-			return
-		}
-		writeJSON(w, http.StatusOK, result)
-	default:
-		writeError(w, http.StatusBadRequest, fmt.Errorf("unsupported scan mode %q", request.Mode))
+	result, err := server.scans.StartScan(r.Context(), appservice.StartScanRequest{
+		Mode: request.Mode,
+		CIDR: request.CIDR,
+	})
+	if err != nil {
+		writeScanServiceError(w, err)
+		return
 	}
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (server Server) handleListScans(w http.ResponseWriter, r *http.Request) {
@@ -222,6 +205,17 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 
 func writeError(w http.ResponseWriter, status int, err error) {
 	writeJSON(w, status, map[string]string{"error": err.Error()})
+}
+
+func writeScanServiceError(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, appservice.ErrUnsupportedScanMode):
+		writeError(w, http.StatusBadRequest, err)
+	case errors.Is(err, appservice.ErrLocalNetworkUnavailable):
+		writeError(w, http.StatusServiceUnavailable, err)
+	default:
+		writeError(w, http.StatusInternalServerError, err)
+	}
 }
 
 func writeDownload(w http.ResponseWriter, status int, contentType string, filename string, payload []byte) {

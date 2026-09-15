@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,18 +12,19 @@ import (
 	networkv1 "github.com/lcdosguzman/netinspector/internal/gen/network/v1"
 	"github.com/lcdosguzman/netinspector/internal/network"
 	"github.com/lcdosguzman/netinspector/internal/scanner"
+	appservice "github.com/lcdosguzman/netinspector/internal/service"
 	"github.com/lcdosguzman/netinspector/internal/storage"
 )
 
 type networkService struct {
-	scanTimeoutConfig Config
-	repository        storage.ScanRepository
+	repository storage.ScanRepository
+	scans      appservice.ScanService
 }
 
-func newNetworkService(config Config, repository storage.ScanRepository) networkService {
+func newNetworkService(repository storage.ScanRepository, scans appservice.ScanService) networkService {
 	return networkService{
-		scanTimeoutConfig: config,
-		repository:        repository,
+		repository: repository,
+		scans:      scans,
 	}
 }
 
@@ -40,9 +42,12 @@ func (service networkService) GetLocalNetwork(_ context.Context, _ *connect.Requ
 }
 
 func (service networkService) StartScan(ctx context.Context, request *connect.Request[networkv1.StartScanRequest]) (*connect.Response[networkv1.ScanResult], error) {
-	result, err := service.scan(ctx, request.Msg.Mode, request.Msg.Cidr)
+	result, err := service.scans.StartScan(ctx, appservice.StartScanRequest{
+		Mode: scanModeFromProto(request.Msg.Mode),
+		CIDR: request.Msg.Cidr,
+	})
 	if err != nil {
-		return nil, err
+		return nil, connectScanServiceError(err)
 	}
 	return connect.NewResponse(scanResultToProto(result)), nil
 }
@@ -100,37 +105,6 @@ func (service networkService) InspectDevice(_ context.Context, request *connect.
 		OpenPorts:   nil,
 		EstimatedOs: "Unknown",
 	}), nil
-}
-
-func (service networkService) scan(ctx context.Context, mode networkv1.ScanMode, cidr string) (scanner.ScanResult, error) {
-	switch mode {
-	case networkv1.ScanMode_SCAN_MODE_UNSPECIFIED, networkv1.ScanMode_SCAN_MODE_DEMO:
-		return demo.NewScan(), nil
-	case networkv1.ScanMode_SCAN_MODE_REAL:
-		local, err := network.DetectLocalNetwork()
-		if err != nil {
-			return scanner.ScanResult{}, connect.NewError(connect.CodeUnavailable, err)
-		}
-		if cidr != "" {
-			local.CIDR = cidr
-		}
-
-		tcpScanner := scanner.NewTCPScanner(scanner.Config{
-			Ports:       scanner.DefaultDiscoveryPorts(),
-			Concurrency: 128,
-			Timeout:     service.scanTimeoutConfig.ScanTimeout,
-		})
-		result, err := tcpScanner.ScanCIDR(ctx, local)
-		if err != nil {
-			return scanner.ScanResult{}, connect.NewError(connect.CodeInternal, err)
-		}
-		if err := service.repository.SaveScan(ctx, result); err != nil {
-			return scanner.ScanResult{}, connect.NewError(connect.CodeInternal, err)
-		}
-		return result, nil
-	default:
-		return scanner.ScanResult{}, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("unsupported scan mode %s", mode.String()))
-	}
 }
 
 func scanResultToProto(result scanner.ScanResult) *networkv1.ScanResult {
@@ -205,6 +179,28 @@ func scanModeToProto(mode string) networkv1.ScanMode {
 		return networkv1.ScanMode_SCAN_MODE_DEMO
 	default:
 		return networkv1.ScanMode_SCAN_MODE_UNSPECIFIED
+	}
+}
+
+func scanModeFromProto(mode networkv1.ScanMode) string {
+	switch mode {
+	case networkv1.ScanMode_SCAN_MODE_REAL:
+		return appservice.ScanModeReal
+	case networkv1.ScanMode_SCAN_MODE_DEMO, networkv1.ScanMode_SCAN_MODE_UNSPECIFIED:
+		return appservice.ScanModeDemo
+	default:
+		return mode.String()
+	}
+}
+
+func connectScanServiceError(err error) error {
+	switch {
+	case errors.Is(err, appservice.ErrUnsupportedScanMode):
+		return connect.NewError(connect.CodeInvalidArgument, err)
+	case errors.Is(err, appservice.ErrLocalNetworkUnavailable):
+		return connect.NewError(connect.CodeUnavailable, err)
+	default:
+		return connect.NewError(connect.CodeInternal, err)
 	}
 }
 
