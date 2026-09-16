@@ -5,14 +5,15 @@ DASHBOARD_HOST ?= 127.0.0.1
 DASHBOARD_PORT ?= 3000
 GO_BIN := $(shell go env GOPATH)/bin
 PROTO_PATH := $(PATH):$(GO_BIN):$(CURDIR)/node_modules/.bin
+GOCACHE ?= $(CURDIR)/.cache/go-build
 
-.PHONY: help install test lint build proto proto-check check dev dev-api dev-dashboard
+.PHONY: help install test test-go test-dashboard lint build proto proto-check check dev dev-api dev-dashboard
 
 help:
 	@echo "NetInspector development commands"
 	@echo ""
 	@echo "  make install       Install root and dashboard npm dependencies"
-	@echo "  make test          Run Go tests"
+	@echo "  make test          Run Go and dashboard tests"
 	@echo "  make lint          Run dashboard lint"
 	@echo "  make build         Build dashboard"
 	@echo "  make proto         Regenerate Protobuf and Connect code"
@@ -27,7 +28,14 @@ install:
 	cd apps/dashboard && npm install
 
 test:
-	go test ./...
+	$(MAKE) test-go
+	$(MAKE) test-dashboard
+
+test-go:
+	GOCACHE="$(GOCACHE)" go test ./cmd/... ./internal/...
+
+test-dashboard:
+	cd apps/dashboard && npm run test
 
 lint:
 	cd apps/dashboard && npm run lint

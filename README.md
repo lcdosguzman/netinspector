@@ -159,16 +159,17 @@ Recommended local check:
 make check
 ```
 
-Backend:
+Backend and dashboard tests:
 
 ```sh
-go test ./...
+make test
 ```
 
 Dashboard:
 
 ```sh
 cd apps/dashboard
+npm run test
 npm run lint
 npm run build
 ```

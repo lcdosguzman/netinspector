@@ -2,6 +2,7 @@
 bin/
 dist/
 coverage.out
+.cache/
 
 # Node
 node_modules/
@@ -20,3 +21,6 @@ yarn-debug.log*
 # Local planning/specification notes
 Especificación Funcional y Técnica - NetInspector Engine & Dashboard.md
 Especificación Funcional y Técnica - NetInspector Engine & Dashboard v2.md
+PENDIENTES.md
+PROJECT_IMPROVEMENTS.md
+PROJECT_IMPROVEMENTS.es.md
