@@ -72,6 +72,12 @@ Known limitations:
 
 ## Run
 
+Optional environment setup:
+
+```sh
+cp .env.example .env
+```
+
 Demo CLI:
 
 ```sh
@@ -190,3 +196,7 @@ make build
 - Replace the seed OUI table with a complete local IEEE OUI database.
 - Add deeper device inspection on demand.
 - Improve cross-platform discovery for Linux and Windows.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
