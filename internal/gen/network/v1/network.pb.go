@@ -1174,7 +1174,7 @@ const file_network_v1_network_proto_rawDesc = "" +
 	"\aGetScan\x12\x1a.network.v1.GetScanRequest\x1a\x16.network.v1.ScanResult\x12D\n" +
 	"\n" +
 	"StreamScan\x12\x1d.network.v1.StreamScanRequest\x1a\x15.network.v1.ScanEvent0\x01\x12T\n" +
-	"\rInspectDevice\x12 .network.v1.InspectDeviceRequest\x1a!.network.v1.InspectDeviceResponseBGZEgithub.com/lcdosguzman/netinspector/internal/gen/network/v1;networkv1b\x06proto3"
+	"\rInspectDevice\x12 .network.v1.InspectDeviceRequest\x1a!.network.v1.InspectDeviceResponseBEZCgithub.com/lcdosguzman/lansweepgo/internal/gen/network/v1;networkv1b\x06proto3"
 
 var (
 	file_network_v1_network_proto_rawDescOnce sync.Once

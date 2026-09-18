@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
 	_ "modernc.org/sqlite"
 )
 
@@ -22,7 +22,7 @@ type SQLiteScanRepository struct {
 
 func NewSQLiteScanRepository(path string) (*SQLiteScanRepository, error) {
 	if path == "" {
-		path = filepath.Join(".netinspector", "netinspector.db")
+		path = filepath.Join(".lansweepgo", "lansweepgo.db")
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, fmt.Errorf("create sqlite directory: %w", err)

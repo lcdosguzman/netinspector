@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
 )
 
 var ErrScanNotFound = errors.New("scan not found")

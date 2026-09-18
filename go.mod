@@ -1,4 +1,4 @@
-module github.com/lcdosguzman/netinspector
+module github.com/lcdosguzman/lansweepgo
 
 go 1.26.0
 

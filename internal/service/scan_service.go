@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/demo"
-	"github.com/lcdosguzman/netinspector/internal/network"
-	"github.com/lcdosguzman/netinspector/internal/scanner"
-	"github.com/lcdosguzman/netinspector/internal/storage"
+	"github.com/lcdosguzman/lansweepgo/internal/demo"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/storage"
 )
 
 const (

@@ -184,21 +184,93 @@ dt {
 
 .flowNodeLabel {
   display: grid;
-  gap: 6px;
-  width: 176px;
-  min-height: 104px;
-  border: 1px solid rgba(81, 199, 168, 0.55);
+  gap: 7px;
+  width: 188px;
+  min-height: 122px;
+  max-width: 188px;
+  border: 1px solid var(--node-accent, rgba(81, 199, 168, 0.55));
   border-radius: 8px;
-  background: var(--panel-strong);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--node-accent, var(--accent)) 12%, transparent), transparent 58%),
+    var(--panel-strong);
   padding: 14px;
-  text-align: center;
+  text-align: left;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
   cursor: grab;
 }
 
+.flowNodeLabel:active {
+  cursor: grabbing;
+}
+
 .gatewayNode .flowNodeLabel {
   border-color: var(--accent);
-  box-shadow: 0 0 0 10px rgba(81, 199, 168, 0.08);
+  box-shadow:
+    0 0 0 10px rgba(81, 199, 168, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.type-router,
+.gatewayNode {
+  --node-accent: #51c7a8;
+}
+
+.type-desktop {
+  --node-accent: #7aa2f7;
+}
+
+.type-mobile {
+  --node-accent: #f2bb5f;
+}
+
+.type-tv {
+  --node-accent: #b48ead;
+}
+
+.type-printer {
+  --node-accent: #8bd5ca;
+}
+
+.type-iot {
+  --node-accent: #a3be8c;
+}
+
+.type-unknown {
+  --node-accent: #526070;
+}
+
+.nodeMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nodeMeta span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 136px;
+  min-height: 24px;
+  border: 1px solid color-mix(in srgb, var(--node-accent, var(--accent)) 52%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--node-accent, var(--accent)) 14%, transparent);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  padding: 0 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nodeMeta i {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--node-accent, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--node-accent, var(--accent)) 18%, transparent);
 }
 
 .flowNodeLabel span,
@@ -207,17 +279,35 @@ dt {
   font-size: 12px;
 }
 
-.flowNodeLabel strong,
 .flowNodeLabel small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.flowNodeLabel strong {
+  display: -webkit-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.flowNodeLabel small {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .selectedNode .flowNodeLabel {
   border-color: var(--accent-strong);
   box-shadow:
     0 0 0 3px rgba(114, 224, 191, 0.2),
+    0 0 0 10px color-mix(in srgb, var(--node-accent, var(--accent)) 12%, transparent),
     0 18px 42px rgba(0, 0, 0, 0.3);
 }
 

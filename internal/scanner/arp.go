@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"regexp"
 
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 var arpLinePattern = regexp.MustCompile(`\((\d+\.\d+\.\d+\.\d+)\) at ([0-9a-fA-F:]+)`)

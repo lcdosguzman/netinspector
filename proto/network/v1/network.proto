@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package network.v1;
 
-option go_package = "github.com/lcdosguzman/netinspector/internal/gen/network/v1;networkv1";
+option go_package = "github.com/lcdosguzman/lansweepgo/internal/gen/network/v1;networkv1";
 
 service NetworkService {
   rpc GetLocalNetwork(GetLocalNetworkRequest) returns (GetLocalNetworkResponse);

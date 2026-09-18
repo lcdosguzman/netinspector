@@ -8,12 +8,12 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/lcdosguzman/netinspector/internal/demo"
-	networkv1 "github.com/lcdosguzman/netinspector/internal/gen/network/v1"
-	"github.com/lcdosguzman/netinspector/internal/network"
-	"github.com/lcdosguzman/netinspector/internal/scanner"
-	appservice "github.com/lcdosguzman/netinspector/internal/service"
-	"github.com/lcdosguzman/netinspector/internal/storage"
+	"github.com/lcdosguzman/lansweepgo/internal/demo"
+	networkv1 "github.com/lcdosguzman/lansweepgo/internal/gen/network/v1"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
+	appservice "github.com/lcdosguzman/lansweepgo/internal/service"
+	"github.com/lcdosguzman/lansweepgo/internal/storage"
 )
 
 type networkService struct {

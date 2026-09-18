@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 type fakeDiscoverer struct {

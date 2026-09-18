@@ -1,5 +1,5 @@
 import type { ScanSummary } from "../types/network";
-import { scanExportURL } from "../lib/netinspector-client";
+import { scanExportURL } from "../lib/lansweepgo-client";
 
 type ScanHistoryProps = {
   history: ScanSummary[];

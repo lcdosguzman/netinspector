@@ -3,7 +3,7 @@ package demo
 import (
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
 )
 
 func NewScan() scanner.ScanResult {

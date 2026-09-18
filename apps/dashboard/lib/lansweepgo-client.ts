@@ -9,7 +9,7 @@ import {
 } from "../src/gen/network/v1/network_pb";
 import type { ScanMode } from "../types/network";
 
-const apiBaseURL = process.env.NEXT_PUBLIC_NETINSPECTOR_API_URL ?? "http://127.0.0.1:8088";
+const apiBaseURL = process.env.NEXT_PUBLIC_LANSWEEPGO_API_URL ?? "http://127.0.0.1:8088";
 const transport = createConnectTransport({ baseUrl: apiBaseURL });
 const client = createPromiseClient(NetworkService, transport);
 

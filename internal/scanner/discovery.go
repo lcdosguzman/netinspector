@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 type DiscoverySource string

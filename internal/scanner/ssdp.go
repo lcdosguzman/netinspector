@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 const ssdpSearchRequest = "M-SEARCH * HTTP/1.1\r\n" +

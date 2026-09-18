@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 var mdnsServiceTypes = []string{

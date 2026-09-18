@@ -1,8 +1,8 @@
-# NetInspector
+# LanSweepGo
 
-[![CI](https://github.com/lcdosguzman/netinspector/actions/workflows/ci.yml/badge.svg)](https://github.com/lcdosguzman/netinspector/actions/workflows/ci.yml)
+[![CI](https://github.com/lcdosguzman/lansweepgo/actions/workflows/ci.yml/badge.svg)](https://github.com/lcdosguzman/lansweepgo/actions/workflows/ci.yml)
 
-NetInspector is a local network discovery and inspection dashboard built with Go and Next.js. The MVP focuses on a controlled, portfolio-ready experience: automatic local network detection, demo data, real LAN discovery, device inspection, and a visual dashboard.
+LanSweepGo is a local network discovery and inspection dashboard built with Go and Next.js. The MVP focuses on a controlled, portfolio-ready experience: automatic local network detection, demo data, real LAN discovery, device inspection, and a visual dashboard.
 
 ## What It Does
 
@@ -20,8 +20,8 @@ NetInspector is a local network discovery and inspection dashboard built with Go
 ## Architecture
 
 ```text
-netinspector/
-  cmd/netinspector/        Go CLI and API server entrypoint
+lansweepgo/
+  cmd/lansweepgo/        Go CLI and API server entrypoint
   internal/api/            Connect-RPC service and compatibility JSON API
   internal/gen/            Generated Go Protobuf and Connect code
   internal/demo/           Demo scan data
@@ -39,7 +39,7 @@ netinspector/
 
 Implemented:
 
-- Go module using `github.com/lcdosguzman/netinspector`.
+- Go module using `github.com/lcdosguzman/lansweepgo`.
 - CLI scan modes: `demo` and `real`.
 - Local IPv4 network detection.
 - Demo scan with realistic sample devices.
@@ -81,19 +81,19 @@ cp .env.example .env
 Demo CLI:
 
 ```sh
-go run ./cmd/netinspector -mode demo
+go run ./cmd/lansweepgo -mode demo
 ```
 
 Real CLI scan:
 
 ```sh
-go run ./cmd/netinspector -mode real
+go run ./cmd/lansweepgo -mode real
 ```
 
 API server:
 
 ```sh
-go run ./cmd/netinspector -serve
+go run ./cmd/lansweepgo -serve
 ```
 
 Available endpoints:
@@ -113,19 +113,19 @@ Available endpoints:
 Scan history is stored in SQLite at:
 
 ```text
-.netinspector/netinspector.db
+.lansweepgo/lansweepgo.db
 ```
 
 Override the database path with:
 
 ```sh
-NETINSPECTOR_DB_PATH=/path/to/netinspector.db go run ./cmd/netinspector -serve
+LANSWEEPGO_DB_PATH=/path/to/lansweepgo.db go run ./cmd/lansweepgo -serve
 ```
 
 or:
 
 ```sh
-go run ./cmd/netinspector -serve -db /path/to/netinspector.db
+go run ./cmd/lansweepgo -serve -db /path/to/lansweepgo.db
 ```
 
 Generate Protobuf and Connect code:

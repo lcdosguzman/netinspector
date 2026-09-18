@@ -10,7 +10,7 @@ GOCACHE ?= $(CURDIR)/.cache/go-build
 .PHONY: help install test test-go test-dashboard lint build proto proto-check check dev dev-api dev-dashboard
 
 help:
-	@echo "NetInspector development commands"
+	@echo "LanSweepGo development commands"
 	@echo ""
 	@echo "  make install       Install root and dashboard npm dependencies"
 	@echo "  make test          Run Go and dashboard tests"
@@ -54,7 +54,7 @@ proto-check: proto
 check: proto-check test lint build
 
 dev-api:
-	go run ./cmd/netinspector -serve -addr $(API_ADDR)
+	go run ./cmd/lansweepgo -serve -addr $(API_ADDR)
 
 dev-dashboard:
 	cd apps/dashboard && npm run dev -- --hostname $(DASHBOARD_HOST) --port $(DASHBOARD_PORT)
@@ -62,5 +62,5 @@ dev-dashboard:
 dev:
 	@echo "Starting API on http://$(API_ADDR) and dashboard on http://$(DASHBOARD_HOST):$(DASHBOARD_PORT)"
 	@trap 'kill $$(jobs -p)' EXIT INT TERM; \
-	go run ./cmd/netinspector -serve -addr $(API_ADDR) & \
+	go run ./cmd/lansweepgo -serve -addr $(API_ADDR) & \
 	cd apps/dashboard && npm run dev -- --hostname $(DASHBOARD_HOST) --port $(DASHBOARD_PORT)

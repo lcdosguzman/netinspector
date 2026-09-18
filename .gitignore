@@ -15,12 +15,12 @@ yarn-debug.log*
 # Local environment
 .env
 .env.local
-.netinspector/
+.lansweepgo/
 .DS_Store
 
 # Local planning/specification notes
-Especificación Funcional y Técnica - NetInspector Engine & Dashboard.md
-Especificación Funcional y Técnica - NetInspector Engine & Dashboard v2.md
+Especificación Funcional y Técnica - LanSweepGo Engine & Dashboard.md
+Especificación Funcional y Técnica - LanSweepGo Engine & Dashboard v2.md
 PENDIENTES.md
 PROJECT_IMPROVEMENTS.md
 PROJECT_IMPROVEMENTS.es.md

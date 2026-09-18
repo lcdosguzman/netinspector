@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NetInspector",
+  title: "LanSweepGo",
   description: "Local network discovery and topology dashboard"
 };
 

@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/api"
-	"github.com/lcdosguzman/netinspector/internal/demo"
-	"github.com/lcdosguzman/netinspector/internal/network"
-	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/api"
+	"github.com/lcdosguzman/lansweepgo/internal/demo"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 			ScanTimeout:  *timeout,
 			DatabasePath: *dbPath,
 		})
-		log.Printf("netinspector API listening on http://%s", *addr)
+		log.Printf("lansweepgo API listening on http://%s", *addr)
 		if err := server.ListenAndServe(ctx); err != nil {
 			exitWithError(err)
 		}
@@ -73,6 +73,6 @@ func printJSON(value any) {
 }
 
 func exitWithError(err error) {
-	fmt.Fprintf(os.Stderr, "netinspector: %v\n", err)
+	fmt.Fprintf(os.Stderr, "lansweepgo: %v\n", err)
 	os.Exit(1)
 }

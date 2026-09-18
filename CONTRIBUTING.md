@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in improving NetInspector.
+Thanks for your interest in improving LanSweepGo.
 
 ## Development Setup
 
@@ -44,4 +44,4 @@ make proto
 
 ## Security And Privacy
 
-NetInspector inspects local networks. Do not commit real scan outputs that expose private IPs, MAC addresses, hostnames, or device names.
+LanSweepGo inspects local networks. Do not commit real scan outputs that expose private IPs, MAC addresses, hostnames, or device names.

@@ -9,7 +9,7 @@ import { ScanControls } from "../components/ScanControls";
 import { ScanHistory } from "../components/ScanHistory";
 import { TopologyGraph } from "../components/TopologyGraph";
 import { scanResultToView, scanSummaryToView } from "../lib/mappers";
-import { getStoredScan, listScanHistory, startNetworkScan } from "../lib/netinspector-client";
+import { getStoredScan, listScanHistory, startNetworkScan } from "../lib/lansweepgo-client";
 import type { ScanMode, ScanStatus, ScanSummary, ScanView } from "../types/network";
 
 const emptyScan: ScanView = {
@@ -101,7 +101,7 @@ export default function Home() {
     <main className="shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">NetInspector</p>
+          <p className="eyebrow">LanSweepGo</p>
           <h1>Local Network Topology</h1>
         </div>
         <ScanControls mode={mode} status={status} onModeChange={setMode} onStartScan={startScan} />

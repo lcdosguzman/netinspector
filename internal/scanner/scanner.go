@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 type Config struct {

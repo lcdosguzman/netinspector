@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
 )
 
 type TCPDiscoverer struct {

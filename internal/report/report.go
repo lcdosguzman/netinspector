@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
 )
 
 func JSON(scan scanner.ScanResult) ([]byte, error) {

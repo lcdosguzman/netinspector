@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lcdosguzman/netinspector/internal/scanner"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
 )
 
 func TestWhenExportingJSONThenScanPayloadIsPreserved(t *testing.T) {

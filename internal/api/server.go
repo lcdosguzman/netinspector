@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	networkv1connect "github.com/lcdosguzman/netinspector/internal/gen/network/v1/networkv1connect"
-	"github.com/lcdosguzman/netinspector/internal/network"
-	"github.com/lcdosguzman/netinspector/internal/report"
-	"github.com/lcdosguzman/netinspector/internal/scanner"
-	appservice "github.com/lcdosguzman/netinspector/internal/service"
-	"github.com/lcdosguzman/netinspector/internal/storage"
+	networkv1connect "github.com/lcdosguzman/lansweepgo/internal/gen/network/v1/networkv1connect"
+	"github.com/lcdosguzman/lansweepgo/internal/network"
+	"github.com/lcdosguzman/lansweepgo/internal/report"
+	"github.com/lcdosguzman/lansweepgo/internal/scanner"
+	appservice "github.com/lcdosguzman/lansweepgo/internal/service"
+	"github.com/lcdosguzman/lansweepgo/internal/storage"
 )
 
 type Config struct {
@@ -39,7 +39,7 @@ func NewServer(config Config) Server {
 		config.ScanTimeout = 300 * time.Millisecond
 	}
 	if config.DatabasePath == "" {
-		config.DatabasePath = os.Getenv("NETINSPECTOR_DB_PATH")
+		config.DatabasePath = os.Getenv("LANSWEEPGO_DB_PATH")
 	}
 
 	return Server{config: config}
@@ -230,7 +230,7 @@ func exportFilename(scan scanner.ScanResult, extension string) string {
 	if scanID == "" {
 		scanID = "scan"
 	}
-	return fmt.Sprintf("netinspector-%s.%s", scanID, extension)
+	return fmt.Sprintf("lansweepgo-%s.%s", scanID, extension)
 }
 
 func withCORS(next http.Handler) http.Handler {
